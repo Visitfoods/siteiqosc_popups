@@ -190,7 +190,7 @@
         transform: translateX(-50%);
         display: flex;
         justify-content: center;
-        gap: 25px;
+        gap: 10px;
         padding: 15px 30px;
         z-index: 1000;
         width: 300px;
@@ -451,7 +451,7 @@
     </div>
 
     <a-scene
-    renderer="colorManagement: true, physicallyCorrectLights, alpha: false, hadowMapType: pcfsoft" 
+    renderer="colorManagement: true, physicallyCorrectLights, alpha: false, antialias: true" 
       vr-mode-ui="enabled: false"
       device-orientation-permission-ui="enabled: false" loading-screen="enabled: false">
 
@@ -464,8 +464,28 @@
         </a-camera>
       </a-entity>
 
+      <!-- Configuração de iluminação de estúdio aprimorada -->
+      <a-entity light="type: ambient; color: #FFF; intensity: 1.5"></a-entity>
+      <a-entity light="type: directional; color: #FFF; intensity: 1.4; castShadow: true" position="2 2 2"></a-entity>
+      <a-entity light="type: directional; color: #FFF; intensity: 1.2" position="-2 2 -2"></a-entity>
+      <a-entity light="type: directional; color: #FFF; intensity: 1.0" position="0 -1 0"></a-entity>
+      <!-- Luzes adicionais para áreas texturizadas -->
+      <a-entity light="type: spot; color: #FFF; intensity: 1.2; angle: 45" position="0 3 0" rotation="-90 0 0"></a-entity>
+      <a-entity light="type: point; color: #FFF; intensity: 0.8; distance: 5" position="1 1 1"></a-entity>
+
       
-   
+
+      <a-assets>
+        <!-- Filtro de blur para as sombras -->
+        <svg style="display: none;">
+          <defs>
+            <filter id="shadow-blur">
+              <feGaussianBlur stdDeviation="3"></feGaussianBlur>
+            </filter>
+          </defs>
+        </svg>
+      </a-assets>
+
 
       <a-entity id="models-container" position="0 0 0" rotation="0 0 0">
         <!-- Os modelos serão adicionados aqui dinamicamente -->
@@ -520,8 +540,8 @@
         }
       });
       
-      // Componente para ativar a câmera
-      AFRAME.registerComponent('camera-active', {
+        // Componente para ativar a câmera
+        AFRAME.registerComponent('camera-active', {
         init: function() {
           this.setupCamera();
           this.setupErrorMessage();
@@ -547,7 +567,6 @@
               // Criar elemento de vídeo para a câmera
               const video = document.createElement('video');
               video.srcObject = stream;
-              videoElement.muted = true; // Torna o vídeo mudo, essencial para autoplay no Safari
               video.classList.add('camera-feed');
               video.setAttribute('playsinline', '');
               video.setAttribute('webkit-playsinline', '');
@@ -812,6 +831,13 @@
         'remove-transparency': ''
       };
 
+
+
+            
+      
+
+
+      
       // Função para carregar um modelo específico
       function loadModel(color) {
         // Mostrar overlay de carregamento
