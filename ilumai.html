@@ -452,12 +452,17 @@
     </div>
 
     <a-scene
-    renderer="colorManagement: true, physicallyCorrectLights, alpha: false, antialias: true" 
+    renderer="colorManagement: true; physicallyCorrectLights: true; alpha: false; antialias: true;" 
       vr-mode-ui="enabled: false"
       device-orientation-permission-ui="enabled: false" loading-screen="enabled: false">
 
       <a-assets>
         <!-- Os modelos serão carregados dinamicamente quando necessários -->
+        <a-asset-item id="turquoise-model" src="modelo3d/modelo2/pastel-turquoise.glb"></a-asset-item>
+        <a-asset-item id="navy-model" src="modelo3d/modelo2/navy-blazer.glb"></a-asset-item>
+        <a-asset-item id="olive-model" src="modelo3d/modelo2/olive-green.glb"></a-asset-item>
+        <a-asset-item id="jacaranda-model" src="modelo3d/modelo2/jacaranda.glb"></a-asset-item>
+        <a-asset-item id="rooibos-model" src="modelo3d/modelo2/rooibos-tea.glb"></a-asset-item>
       </a-assets>
 
       <a-entity position="0 0 8">
@@ -895,11 +900,11 @@
       
       // Mapeamento dos modelos e seus URLs
       const modelURLs = {
-        'turquoise': 'modelo3d/modelo2/pastel-turquoise.glb',
-        'navy': 'modelo3d/modelo2/navy-blazer.glb',
-        'olive': 'modelo3d/modelo2/olive-green.glb',
-        'rooibos': 'modelo3d/modelo2/rooibos-tea.glb',
-        'jacaranda': 'modelo3d/modelo2/jacaranda.glb'
+        'turquoise': '#turquoise-model',
+        'navy': '#navy-model',
+        'olive': '#olive-model',
+        'rooibos': '#rooibos-model',
+        'jacaranda': '#jacaranda-model'
       };
 
       // Configurações padrão para todos os modelos
@@ -910,13 +915,33 @@
         'resource-manager': ''
       };
 
+      // Função para verificar se os arquivos existem
+      function checkModelFiles() {
+        console.log("Verificando arquivos de modelos...");
+        const modelPaths = [
+          'modelo3d/modelo2/pastel-turquoise.glb',
+          'modelo3d/modelo2/navy-blazer.glb',
+          'modelo3d/modelo2/olive-green.glb',
+          'modelo3d/modelo2/jacaranda.glb',
+          'modelo3d/modelo2/rooibos-tea.glb'
+        ];
+        
+        // Verificar cada modelo usando fetch
+        modelPaths.forEach(path => {
+          fetch(path)
+            .then(response => {
+              if (response.ok) {
+                console.log(`Arquivo encontrado: ${path}`);
+              } else {
+                console.error(`Arquivo não encontrado: ${path} - Status: ${response.status}`);
+              }
+            })
+            .catch(error => {
+              console.error(`Erro ao verificar arquivo ${path}:`, error);
+            });
+        });
+      }
 
-
-            
-      
-
-
-      
       // Função para carregar um modelo específico
       function loadModel(color) {
         // Mostrar overlay de carregamento
@@ -927,34 +952,41 @@
         
         console.log(`Carregando modelo: ${color}`);
         
+        // Verificar se o URL do modelo existe
+        if (!modelURLs[color]) {
+          console.error(`URL do modelo para a cor ${color} não encontrado`);
+          loadingOverlay.style.display = 'none';
+          loadingCounter.textContent = 'Erro: modelo não encontrado';
+          return;
+        }
+        
         // Remover modelo atual se existir
         if (currentModel) {
           console.log(`Removendo modelo atual: ${currentModel.id}`);
           
-          // Ativar a limpeza de recursos através do componente
-          currentModel.setAttribute('resource-manager', 'dispose', true);
+          try {
+            // Ativar a limpeza de recursos através do componente
+            currentModel.setAttribute('resource-manager', {dispose: true});
+            
+            // Remover referências ao modelo
+            currentModel.setAttribute('gltf-model', '');
+            currentModel.removeAttribute('gltf-model');
+            
+            // Remover entidade da cena
+            modelsContainer.removeChild(currentModel);
+          } catch (e) {
+            console.error('Erro ao remover modelo atual:', e);
+          }
           
-          // Remover referências ao modelo
-          currentModel.setAttribute('gltf-model', '');
-          currentModel.removeAttribute('gltf-model');
-          
-          // Remover entidade da cena
-          modelsContainer.removeChild(currentModel);
           currentModel = null;
           
           // Forçar limpeza do cache
           THREE.Cache.clear();
           
-          // Forçar uma atualização do renderizador
-          const renderer = document.querySelector('a-scene').renderer;
-          if (renderer) {
-            renderer.info.reset();
-          }
-          
           // Pequeno delay para garantir que a memória seja liberada antes de carregar o novo modelo
           setTimeout(() => {
             createAndLoadNewModel(color);
-          }, 200);
+          }, 300);
         } else {
           createAndLoadNewModel(color);
         }
@@ -962,39 +994,71 @@
       
       // Função para criar e carregar o novo modelo
       function createAndLoadNewModel(color) {
-        // Criar novo elemento para o modelo
-        const newModel = document.createElement('a-entity');
-        newModel.id = `modelo-${color}`;
-        
-        // Configurar o novo modelo
-        for (const [attr, value] of Object.entries(modelConfig)) {
-          newModel.setAttribute(attr, value);
-        }
-        
-        // Adicionar modelo ao container
-        modelsContainer.appendChild(newModel);
-        currentModel = newModel;
-        
-        // Carregar o modelo depois de adicionar à cena
-        newModel.addEventListener('model-loaded', () => {
-          console.log(`Modelo ${color} carregado com sucesso`);
-          loadingOverlay.style.display = 'none';
+        try {
+          console.log(`Criando novo modelo para cor: ${color}`);
+          console.log(`URL do modelo: ${modelURLs[color]}`);
           
-          // Força uma renderização completa
-          const scene = document.querySelector('a-scene').object3D;
-          if (scene) {
-            scene.updateMatrixWorld(true);
+          // Desabilitar opções de cor durante o carregamento
+          if (window.updateColorOptionsState) {
+            window.updateColorOptionsState(true);
           }
-        });
-        
-        newModel.addEventListener('model-error', (error) => {
-          console.error(`Erro ao carregar modelo ${color}:`, error);
+          
+          // Criar novo elemento para o modelo
+          const newModel = document.createElement('a-entity');
+          newModel.id = `modelo-${color}`;
+          
+          // Configurar o novo modelo
+          for (const [attr, value] of Object.entries(modelConfig)) {
+            newModel.setAttribute(attr, value);
+          }
+          
+          // Adicionar modelo ao container
+          modelsContainer.appendChild(newModel);
+          currentModel = newModel;
+          
+          // Carregar o modelo depois de adicionar à cena
+          newModel.addEventListener('model-loaded', () => {
+            console.log(`Modelo ${color} carregado com sucesso`);
+            loadingOverlay.style.display = 'none';
+            
+            // Reabilitar opções de cor após o carregamento
+            if (window.updateColorOptionsState) {
+              window.updateColorOptionsState(false);
+            }
+            
+            // Força uma renderização completa
+            const scene = document.querySelector('a-scene').object3D;
+            if (scene) {
+              scene.updateMatrixWorld(true);
+            }
+          });
+          
+          newModel.addEventListener('model-error', (error) => {
+            console.error(`Erro ao carregar modelo ${color}:`, error);
+            console.error('Detalhes do erro:', JSON.stringify(error.detail));
+            loadingOverlay.style.display = 'none';
+            loadingCounter.textContent = 'Erro ao carregar modelo';
+            
+            // Reabilitar opções de cor após o erro
+            if (window.updateColorOptionsState) {
+              window.updateColorOptionsState(false);
+            }
+          });
+          
+          // Iniciar carregamento do modelo
+          const modelUrl = modelURLs[color];
+          console.log(`Definindo atributo gltf-model para: ${modelUrl}`);
+          newModel.setAttribute('gltf-model', modelUrl);
+        } catch (e) {
+          console.error('Erro ao criar e carregar novo modelo:', e);
           loadingOverlay.style.display = 'none';
-          loadingCounter.textContent = 'Erro ao carregar modelo';
-        });
-        
-        // Iniciar carregamento do modelo
-        newModel.setAttribute('gltf-model', modelURLs[color]);
+          loadingCounter.textContent = 'Erro: falha no carregamento';
+          
+          // Reabilitar opções de cor após o erro
+          if (window.updateColorOptionsState) {
+            window.updateColorOptionsState(false);
+          }
+        }
       }
 
       // Função para mudar de cor
@@ -1054,6 +1118,9 @@
       function initializeScene() {
         console.log('Inicializando cena...');
         
+        // Verificar arquivos de modelos
+        checkModelFiles();
+        
         // Configurar opções do renderizador para melhor gestão de memória
         const sceneEl = document.querySelector('a-scene');
         if (sceneEl.renderer) {
@@ -1093,11 +1160,23 @@
       // Event Listeners
       window.addEventListener('load', () => {
         console.log('Página carregada');
+        
+        // Adicionar erro global para detecção de falhas de carregamento
+        window.addEventListener('error', function(e) {
+          console.error('Erro global detectado:', e);
+          const loadingOverlay = document.getElementById('loading-overlay');
+          const loadingCounter = document.getElementById('loading-counter');
+          
+          if (e.target && (e.target.tagName === 'A-ASSET-ITEM' || e.target.tagName === 'IMG' || e.target.tagName === 'AUDIO')) {
+            loadingCounter.textContent = `Erro ao carregar recurso: ${e.target.src || e.target.href}`;
+          }
+        }, true);
+        
         initializeScene();
       });
 
       // Adicionar event listeners para os botões de cor
-      document.addEventListener('DOMContentLoaded', function() {
+      window.addEventListener('DOMContentLoaded', function() {
         const colorOptions = document.querySelectorAll('.color-option');
         colorOptions.forEach(option => {
           option.addEventListener('click', function(e) {
@@ -1107,6 +1186,26 @@
             changeColor(color);
           });
         });
+
+        // Adicionar monitoramento para erros de carregamento de assets
+        const assets = document.querySelectorAll('a-asset-item');
+        assets.forEach(asset => {
+          asset.addEventListener('error', function(e) {
+            console.error(`Erro ao carregar asset: ${this.id}`, e);
+            alert(`Erro ao carregar modelo: ${this.id}. Verifique o console para mais detalhes.`);
+          });
+        });
+
+        // Desabilitar o clique em opções de cor durante o carregamento
+        function updateColorOptionsState(disabled) {
+          colorOptions.forEach(option => {
+            option.style.pointerEvents = disabled ? 'none' : 'auto';
+            option.style.opacity = disabled ? '0.5' : '1';
+          });
+        }
+
+        // Expor a função para uso global
+        window.updateColorOptionsState = updateColorOptionsState;
       });
     </script>
 
