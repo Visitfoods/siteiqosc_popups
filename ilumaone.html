@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html>
+  <head>
+   <!----push-->
+    <title>IQOS ILUMA i</title>
+    <link rel="icon" type="image/webp" href="icons/favicon-32x32.webp">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.0.0/dist/aframe-extras.min.js"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/orientation.css">
+    <style>
+      .overlay-gradient {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(
+          circle at center,
+          rgba(64, 224, 208, 0) 30%,
+          rgba(0, 206, 209, 0.4) 70%
+        );
+        pointer-events: none;
+        z-index: 1;
+        touch-action: none;
+      }
+
+      .features-dropdown {
+        position: fixed;
+        bottom: 80px;
+        right: 20px;
+        width: 300px;
+        background: rgba(206, 206, 206, 0.9);
+        border-radius: 20px;
+        padding: 20px;
+        color: black;
+        z-index: 1000;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        font-family: 'IQOSSans-Regular', sans-serif;
+      }
+
+      .features-dropdown h3 {
+        margin: 0 0 15px 0;
+        font-size: 18px;
+        font-family: 'IQOSSans-Bold', sans-serif;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .close-button {
+        background: none;
+        border: none;
+        color: #333;
+        font-size: 30px;
+        cursor: pointer;
+        padding: 0;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background-color 0.3s;
+      }
+
+      .close-button:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+
+      .feature-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0px;
+        padding: 5px;
+        border-radius: 12px;
+        transition: transform 0.3s ease;
+        width: 60px;
+      }
+
+      .feature-item:hover {
+        transform: translateX(-5px);
+      }
+
+      .feature-icon {
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      .feature-icon img {
+        width: 20px;
+        height: 20px;
+        object-fit: contain;
+      }
+
+      .feature-text {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+      }
+
+      .feature-label {
+        font-size: 12px;
+        color: white;
+        font-weight: 500;
+        white-space: nowrap;
+        text-align: center;
+        font-family: 'IQOSSans-Regular', sans-serif;
+      }
+
+      .feature-value {
+        font-size: 14px;
+        color: #333;
+        font-weight: 600;
+        line-height: 1.2;
+        white-space: nowrap;
+      }
+
+      .toggle-features {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 140px;
+        height: 44px;
+        background: rgba(0, 0, 0, 0.7);
+        border: none;
+        border-radius: 20;
+        border-radius: 1.8rem;
+        color: white;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 1001;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        font-family: 'IQOSSans-Bold', sans-serif;
+      }
+
+
+      .toggle-features img {
+        width: 20px;
+        height: 20px;
+        object-fit: contain;
+      }
+
+      .title-container {
+        position: fixed;
+        top: 65%;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+        z-index: 1000;
+        width: 100%;
+        font-family: 'IQOSSans-Bold', sans-serif;
+      }
+
+      .title-container h1 {
+        color: #00A0DC;
+        font-family: 'IQOSSans-Bold', sans-serif;
+        font-size: 24px;
+        margin-bottom: 20px;
+      }
+
+      .color-selector-frame {
+        position: fixed;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        max-width: 600px;
+        height: 120px;
+        border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+        z-index: 999;
+        pointer-events: none;
+      }
+
+      .color-selector {
+        position: fixed;
+        bottom: 53px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        justify-content: center;
+        gap: 25px;
+        padding: 15px 30px;
+        z-index: 1000;
+        width: 300px;
+        height: 60px;
+        align-items: center;
+      }
+
+      .color-selector::before {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 200%;
+        bottom: -50%;
+        left: 0;
+        border-radius: 50%;
+        z-index: -1;
+        pointer-events: none;
+      }
+
+      .color-option {
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        transition: transform 0.2s ease, border-color 0.2s ease;
+        position: relative;
+        transform-origin: center 150px;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+
+      .color-option:nth-child(1) { transform: rotate(0deg) translateY(0px); }
+      .color-option:nth-child(2) { transform: rotate(3deg) translateY(20px); }
+      .color-option:nth-child(3) { transform: translateY(33px); }
+      .color-option:nth-child(4) { transform: rotate(0deg) translateY(20px); }
+      .color-option:nth-child(5) { transform: rotate(3deg) translateY(0px); }
+
+      .color-option:hover {
+        border-color: white;
+      }
+
+      .color-option.active {
+        border: 2px solid #00A0DC;
+      }
+
+      .back-button {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        width: 40px;
+        height: 40px;
+        background: rgba(0, 0, 0, 0.7);
+        border: none;
+        border-radius: 50%;
+        color: white;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 1001;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        text-decoration: none;
+      }
+
+      .back-button:hover {
+        background: rgba(0, 0, 0, 0.8);
+      }
+
+      .marker-lost-message {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 15px 30px;
+        border-radius: 10px;
+        font-family: 'IQOSSans-Regular', sans-serif;
+        font-size: 16px;
+        text-align: center;
+        z-index: 1000;
+        display: none;
+        animation: fadeIn 0.3s ease-in-out;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
+      .features-container {
+        position: fixed;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+        z-index: 100;
+        width: auto;
+        padding-right: 5%;
+      }
+
+      .camera-feed {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: -1;
+      }
+
+      .camera-button {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        border-radius: 25px;
+        background: rgba(0, 0, 0, 0.7);
+        border: none;
+        color: white;
+        font-size: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 1002;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .camera-button.active {
+        background: rgba(0, 206, 209, 0.7);
+      }
+
+      .camera-permission-error {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(255, 0, 0, 0.8);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        z-index: 1003;
+        display: none;
+      }
+
+      
+
+
+      /* Estilos do Loading */
+      .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+      }
+
+      .loading-text {
+        color: white;
+        font-size: 18px;
+        margin-bottom: 10px;
+        text-align: center;
+        font-family: 'IQOSSans-Regular', sans-serif;
+      }
+
+      .loading-counter {
+        color: #00ffff;
+        font-size: 16px;
+        margin-top: 10px;
+        font-family: 'IQOSSans-Regular', sans-serif;
+        
+      }
+
+      .loading-spinner {
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #00ffff;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+  </head>
+  <body>
+    <!---<div class="loading">
+      <div>Carregando, por favor aguarde...</div>
+    </div>--->
+    <a href="index.html" class="back-button">←</a>
+
+    <div class="frame">
+      <img src="iconheader.svg" alt="Frame">
+    </div>
+    <img style="margin-top: 14%; width: 126px; padding-bottom: 5%;" id="logo" src="logo iluma.svg" alt="Logo Iluma">
+
+    <div class="orientation-message">
+      <img src="icons/rotate-device.svg" alt="Rotate device">
+      <h2>Por favor, rode o dispositivo</h2>
+      <p>Esta experiência foi projetada para ser visualizada apenas na orientação vertical (retrato).</p>
+      <a href="ilumai.html"><b>Recarregar Página</b></a> 
+    </div>
+   
+  
+    <div class="features-container">
+      <div class="feature-item">
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">
+          <img src="icons/puff.webp" alt="Puffs">
+        </div>
+        <div class="feature-text">
+          <span class="feature-label">Flex <br> Puff</span>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">
+          <img src="icons/inicioautomatico.webp" alt="automatico">
+        </div>
+        <div class="feature-text">
+          <span class="feature-label">Início <br> Automático</span>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+      <div class="loading-text">Estamos a preparar o seu <br> IQOS ILUMA i ONE</div>
+      <div class="loading-spinner"></div>
+      <div id="loading-counter" class="loading-counter">0/5 modelos carregados</div>
+    </div>
+
+    <a-scene
+      renderer="colorManagement: true;"
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: false" loading-screen="enabled: false">
+
+      <a-assets>
+        <!-- Os modelos serão carregados dinamicamente quando necessários -->
+      </a-assets>
+
+      <a-entity position="0 0 8">
+        <a-camera device-camera look-controls="enabled: false" camera-active>
+        </a-camera>
+      </a-entity>
+
+      <a-light type="ambient" intensity="1"></a-light>
+      <a-light type="directional" intensity="0.8" position="-1 1 2"></a-light>
+
+      <!-- Círculos de sombra para cada modelo -->
+      <a-assets>
+        <!-- Filtro de blur para as sombras -->
+        <svg style="display: none;">
+          <defs>
+            <filter id="shadow-blur">
+              <feGaussianBlur stdDeviation="3"></feGaussianBlur>
+            </filter>
+          </defs>
+        </svg>
+      </a-assets>
+
+      <a-entity id="models-container" position="0 0 0" rotation="0 0 0">
+        <!-- Os modelos serão adicionados aqui dinamicamente -->
+      </a-entity>
+    </a-scene>
+
+    <div class="overlay-gradient"></div>
+    
+    <div class="title-container">
+      <h1 style="color: white;">IQOS ILUMA i</h1>
+    </div>
+
+
+    <div class="color-selector">
+      <div class="color-option active" style="background-color: #4A919E;" data-color="turquoise"></div>
+      <div class="color-option" style="background-color: #1E1E1E;" data-color="navy"></div>
+      <div class="color-option" style="background-color: #8a8e28;" data-color="olive"></div>
+      <div class="color-option" style="background-color: #898FC8;" data-color="jacaranda"></div>
+      <div class="color-option" style="background-color: #A75D5D;" data-color="rooibos"></div>
+    </div>
+    <div class="color-selector-frame"></div>
+
+  
+
+
+
+
+    <script>
+       // Componente para remover transparência
+       AFRAME.registerComponent('remove-transparency', {
+        init: function () {
+          this.el.addEventListener('model-loaded', () => {
+            const model = this.el.getObject3D('mesh');
+            if (model) {
+              model.traverse((node) => {
+                if (node.isMesh && node.material) {
+                  const materials = Array.isArray(node.material) ? node.material : [node.material];
+                  materials.forEach((material) => {
+                    material.transparent = false;
+                    material.opacity = 1;
+                    material.depthWrite = true;
+                    material.depthTest = true;
+                    material.blending = THREE.NoBlending;
+                    material.alphaTest = 0.01;
+                    material.side = THREE.DoubleSide;
+                    material.needsUpdate = true;
+                  });
+                }
+              });
+            }
+          });
+        }
+      });
+      
+      // Componente para ativar a câmera
+      AFRAME.registerComponent('camera-active', {
+        init: function() {
+          this.setupCamera();
+          this.setupErrorMessage();
+        },
+
+        setupCamera: function() {
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            console.error('API de câmera não suportada neste navegador');
+            this.showError('Câmera não suportada neste navegador');
+          return;
+        }
+        
+          const constraints = {
+            video: {
+              facingMode: 'environment',
+              width: { ideal: 1920 },
+              height: { ideal: 1080 }
+            }
+          };
+
+          navigator.mediaDevices.getUserMedia(constraints)
+            .then(stream => {
+              // Criar elemento de vídeo para a câmera
+              const video = document.createElement('video');
+              video.srcObject = stream;
+              videoElement.muted = true; // Torna o vídeo mudo, essencial para autoplay no Safari
+              video.classList.add('camera-feed');
+              video.setAttribute('playsinline', '');
+              video.setAttribute('webkit-playsinline', '');
+              
+              // Adicionar vídeo ao DOM
+              document.body.insertBefore(video, document.body.firstChild);
+              
+              // Iniciar reprodução do vídeo
+              video.play().catch(err => {
+                console.error('Erro ao iniciar vídeo:', err);
+                this.showError('Erro ao iniciar a câmera');
+              });
+
+              console.log('Câmera ativada com sucesso');
+            })
+            .catch(err => {
+              console.error('Erro ao ativar a câmera:', err);
+              this.showError('Erro ao ativar a câmera. Por favor, permita o acesso.');
+            });
+        },
+
+        setupErrorMessage: function() {
+          // Criar elemento para mensagens de erro se não existir
+          if (!document.querySelector('.camera-error-message')) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'camera-error-message';
+            errorDiv.style.cssText = `
+              position: fixed;
+              top: 70px;
+              left: 50%;
+              transform: translateX(-50%);
+              background: rgba(255, 0, 0, 0.8);
+              color: white;
+              padding: 10px 20px;
+              border-radius: 5px;
+              font-family: 'IQOSSans-Regular', sans-serif;
+              display: none;
+              z-index: 1000;
+            `;
+            document.body.appendChild(errorDiv);
+          }
+        },
+
+        showError: function(message) {
+          const errorDiv = document.querySelector('.camera-error-message');
+          if (errorDiv) {
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+              errorDiv.style.display = 'none';
+            }, 5000);
+          }
+        }
+      });
+      
+      // Componente para controle do modelo (rotação e movimentação)
+      AFRAME.registerComponent('model-controls', {
+        init: function() {
+          this.el.addEventListener('model-loaded', () => {
+            this.setupControls();
+          });
+        },
+        setupControls: function() {
+          let isDragging = false;
+          let previousMousePosition = { x: 0, y: 0 };
+          let rotation = { x: 0, y: 0 };
+          const rotationSpeed = 0.5;
+          const maxRotation = 45;
+          const maxVerticalRotation = 30; // Novo limite para rotação vertical
+
+          // Mouse events
+          this.el.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            previousMousePosition = {
+              x: e.clientX,
+              y: e.clientY
+            };
+          });
+
+          document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+
+            const deltaMove = {
+              x: e.clientX - previousMousePosition.x,
+              y: e.clientY - previousMousePosition.y
+            };
+
+            // Atualiza a rotação horizontal (eixo Y)
+            rotation.y += deltaMove.x * rotationSpeed;
+            rotation.y = Math.max(-maxRotation, Math.min(maxRotation, rotation.y));
+
+            // Atualiza a rotação vertical (eixo X) com limites
+            const newXRotation = rotation.x + (deltaMove.y * rotationSpeed);
+            rotation.x = Math.max(-maxVerticalRotation, Math.min(maxVerticalRotation, newXRotation));
+
+            // Aplica as rotações
+            this.el.object3D.rotation.set(
+              THREE.MathUtils.degToRad(rotation.x),
+              THREE.MathUtils.degToRad(rotation.y),
+              0
+            );
+
+            previousMousePosition = {
+              x: e.clientX,
+              y: e.clientY
+            };
+          });
+
+          document.addEventListener('mouseup', () => {
+            isDragging = false;
+          });
+
+          // Touch events
+          this.el.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            previousMousePosition = {
+              x: e.touches[0].clientX,
+              y: e.touches[0].clientY
+            };
+          });
+
+          document.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+
+            const deltaMove = {
+              x: e.touches[0].clientX - previousMousePosition.x,
+              y: e.touches[0].clientY - previousMousePosition.y
+            };
+
+            // Atualiza a rotação horizontal (eixo Y)
+            rotation.y += deltaMove.x * rotationSpeed;
+            rotation.y = Math.max(-maxRotation, Math.min(maxRotation, rotation.y));
+
+            // Atualiza a rotação vertical (eixo X) com limites
+            const newXRotation = rotation.x + (deltaMove.y * rotationSpeed);
+            rotation.x = Math.max(-maxVerticalRotation, Math.min(maxVerticalRotation, newXRotation));
+
+            // Aplica as rotações
+            this.el.object3D.rotation.set(
+              THREE.MathUtils.degToRad(rotation.x),
+              THREE.MathUtils.degToRad(rotation.y),
+              0
+            );
+
+            previousMousePosition = {
+              x: e.touches[0].clientX,
+              y: e.touches[0].clientY
+            };
+          });
+
+          document.addEventListener('touchend', () => {
+            isDragging = false;
+          });
+        }
+      });
+
+      // Registrar o novo componente de gestos
+      AFRAME.registerComponent('gesture-handler-custom', {
+        schema: {
+          minScale: { type: 'number', default: 9},
+          maxScale: { type: 'number', default: 25},
+          rotationSensitivity: { type: 'number', default: 0.3 },
+          scaleSensitivity: { type: 'number', default: 0.1 },
+          maxVerticalRotation: { type: 'number', default: 30 } // Novo parâmetro para limitar rotação vertical
+        },
+        init: function() {
+          this.touchStartX = 0;
+          this.touchStartY = 0;
+          this.touchStartDistance = 0;
+          this.currentRotation = { x: 0, y: 0, z: 0 };
+          this.currentScale = 20;
+          
+          this.el.addEventListener('touchstart', this.onTouchStart.bind(this));
+          this.el.addEventListener('touchmove', this.onTouchMove.bind(this));
+          this.el.addEventListener('touchend', this.onTouchEnd.bind(this));
+
+          const sceneEl = document.querySelector('a-scene');
+          sceneEl.addEventListener('touchstart', this.onTouchStart.bind(this));
+          sceneEl.addEventListener('touchmove', this.onTouchMove.bind(this));
+          sceneEl.addEventListener('touchend', this.onTouchEnd.bind(this));
+        },
+        onTouchStart: function(event) {
+          const isVisible = this.el.getAttribute('visible');
+          if (!isVisible) return;
+
+          if (event.touches.length === 1) {
+            this.touchStartX = event.touches[0].clientX;
+            this.touchStartY = event.touches[0].clientY;
+          } else if (event.touches.length === 2) {
+            this.touchStartDistance = Math.hypot(
+              event.touches[0].clientX - event.touches[1].clientX,
+              event.touches[0].clientY - event.touches[1].clientY
+            );
+          }
+        },
+        onTouchMove: function(event) {
+          event.preventDefault();
+          
+          const isVisible = this.el.getAttribute('visible');
+          if (!isVisible) return;
+          
+          if (event.touches.length === 1) {
+            const deltaX = event.touches[0].clientX - this.touchStartX;
+            const deltaY = event.touches[0].clientY - this.touchStartY;
+            
+            // Atualiza rotação horizontal (eixo Y) normalmente
+            this.currentRotation.y += deltaX * this.data.rotationSensitivity;
+            
+            // Atualiza rotação vertical (eixo X) com limites
+            const newXRotation = this.currentRotation.x + (deltaY * this.data.rotationSensitivity);
+            this.currentRotation.x = Math.max(-this.data.maxVerticalRotation, Math.min(this.data.maxVerticalRotation, newXRotation));
+            
+            this.el.setAttribute('rotation', this.currentRotation);
+            
+            this.touchStartX = event.touches[0].clientX;
+            this.touchStartY = event.touches[0].clientY;
+          } else if (event.touches.length === 2) {
+            const currentDistance = Math.hypot(
+              event.touches[0].clientX - event.touches[1].clientX,
+              event.touches[0].clientY - event.touches[1].clientY
+            );
+            
+            const delta = currentDistance - this.touchStartDistance;
+            this.currentScale = Math.max(
+              this.data.minScale,
+              Math.min(this.data.maxScale, this.currentScale + delta * this.data.scaleSensitivity)
+            );
+            
+            this.el.setAttribute('scale', `${this.currentScale} ${this.currentScale} ${this.currentScale}`);
+            this.touchStartDistance = currentDistance;
+          }
+        },
+        onTouchEnd: function(event) {
+          this.touchStartX = 0;
+          this.touchStartY = 0;
+          this.touchStartDistance = 0;
+        }
+      });
+    </script>
+    
+
+    <script>
+      // Variáveis globais
+      let currentColor = 'turquoise';
+      const sceneEl = document.querySelector('a-scene');
+      const modelsContainer = document.getElementById('models-container');
+      let loadingRemoved = false;
+      let currentModel = null;
+      
+      // Mapeamento dos modelos e seus URLs
+      const modelURLs = {
+        'turquoise': 'modelo3d/modelo_IQOS ILUMA ONE/pastel-turquoise.glb',
+        'navy': 'modelo3d/modelo_IQOS ILUMA ONE/navy-blazer.glb',
+        'olive': 'modelo3d/modelo_IQOS ILUMA ONE/olive-green.glb',
+        'rooibos': 'modelo3d/modelo_IQOS ILUMA ONE/rooibos-tea.glb',
+        'jacaranda': 'modelo3d/modelo_IQOS ILUMA ONE/jacaranda.glb'
+      };
+
+      // Configurações padrão para todos os modelos
+      const modelConfig = {
+        scale: '20 20 20',
+        'gesture-handler-custom': '',
+        'remove-transparency': ''
+      };
+
+      // Função para carregar um modelo específico
+      function loadModel(color) {
+        // Mostrar overlay de carregamento
+        const loadingOverlay = document.getElementById('loading-overlay');
+        loadingOverlay.style.display = 'flex';
+        const loadingCounter = document.getElementById('loading-counter');
+        loadingCounter.textContent = 'Carregando modelo...';
+        
+        console.log(`Carregando modelo: ${color}`);
+        
+        // Remover modelo atual se existir
+        if (currentModel) {
+          console.log(`Removendo modelo atual: ${currentModel.id}`);
+          modelsContainer.removeChild(currentModel);
+          currentModel = null;
+          
+          // Libertar memória
+          THREE.Cache.clear();
+          
+          // Se houver memória para limpar, força garbage collection (quando possível)
+          if (window.gc) {
+            window.gc();
+          }
+        }
+        
+        // Criar novo elemento para o modelo
+        const newModel = document.createElement('a-entity');
+        newModel.id = `modelo-${color}`;
+        
+        // Configurar o novo modelo
+        for (const [attr, value] of Object.entries(modelConfig)) {
+          newModel.setAttribute(attr, value);
+        }
+        
+        // Adicionar modelo ao container
+        modelsContainer.appendChild(newModel);
+        currentModel = newModel;
+        
+        // Carregar o modelo depois de adicionar à cena
+        newModel.addEventListener('model-loaded', () => {
+          console.log(`Modelo ${color} carregado com sucesso`);
+          loadingOverlay.style.display = 'none';
+        });
+        
+        newModel.addEventListener('model-error', (error) => {
+          console.error(`Erro ao carregar modelo ${color}:`, error);
+          loadingOverlay.style.display = 'none';
+          loadingCounter.textContent = 'Erro ao carregar modelo';
+        });
+        
+        // Iniciar carregamento do modelo
+        newModel.setAttribute('gltf-model', modelURLs[color]);
+      }
+
+      // Função para mudar de cor
+      function changeColor(color) {
+        console.log('Mudando cor para:', color);
+        
+        const validColors = ['turquoise', 'navy', 'olive', 'jacaranda', 'rooibos'];
+        if (!validColors.includes(color)) {
+          console.error('Cor inválida:', color);
+            return;
+          }
+
+        // Atualizar cor atual
+        currentColor = color;
+        
+        // Atualizar botões de seleção de cor
+        document.querySelectorAll('.color-option').forEach(option => {
+          const isSelected = option.getAttribute('data-color') === color;
+          option.classList.toggle('active', isSelected);
+          console.log(`Botão ${option.getAttribute('data-color')}: ${isSelected ? 'ativo' : 'inativo'}`);
+        });
+        
+        // Carregar o modelo correspondente
+        loadModel(color);
+      }
+
+      // Inicialização
+      function initializeScene() {
+        console.log('Inicializando cena...');
+        
+        // Carregar o modelo inicial após um breve delay
+          setTimeout(() => {
+          changeColor('turquoise');
+        }, 500);
+      }
+
+      // Event Listeners
+      window.addEventListener('load', () => {
+        console.log('Página carregada');
+        initializeScene();
+      });
+
+      // Adicionar event listeners para os botões de cor
+      document.addEventListener('DOMContentLoaded', function() {
+        const colorOptions = document.querySelectorAll('.color-option');
+        colorOptions.forEach(option => {
+          option.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const color = this.getAttribute('data-color');
+            changeColor(color);
+          });
+        });
+      });
+    </script>
+
+    <script src="js/age-verification.js"></script>
+    <script src="js/ilumaprime-one.js"></script>
+  </body>
+</html> 

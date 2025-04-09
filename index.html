@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>IQOS ILUMA i</title>
+    <link rel="icon" type="image/webp" href="icons/favicon-32x32.webp">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/orientation.css">
+    <script src="js/color-switcher.js"></script>
+    <script src="js/age-verification.js"></script>
+    <style>
+      @font-face {
+      font-family: 'IQOSSans-Bold';
+      src: url('../Fonts/IQOSSans-Bold.otf') format('opentype');
+      }
+
+      @font-face {
+        font-family: 'IQOSSans-Regular';
+        src: url('../Fonts/IQOSSans-Regular.otf') format('opentype');
+      }
+      body {
+        background-image: url('fundo.jpg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: scroll;
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+      }
+
+      .carousel-container {
+        position: relative;
+        width: 80%;
+        height: 50vh;
+        margin: 80px auto;  /* Aumentado a margem superior */
+        overflow: visible;
+        perspective: 1000px;
+      }
+
+      .carousel-slide {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transform-style: preserve-3d;
+        transition: all 0.5s ease-in-out;
+        opacity: 1;
+      }
+
+      .carousel-slide::before {
+        content: '';
+        position: absolute;
+        width: 120%;
+        height: 120%;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        transform: translate(-10%, -10%);  /* Centralizar o SVG maior */
+      }
+
+      .carousel-slide.active::before {
+        opacity: 1;
+      }
+
+      .carousel-slide img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        transition: all 0.5s ease-in-out;
+      }
+
+      .carousel-slide.active img {
+        transform: scale(0.8);
+      }
+
+      .carousel-slide.left {
+        transform: translateX(-60%) translateZ(-100px);
+        z-index: 1;
+        opacity: 1;
+      }
+
+      .carousel-slide.left img {
+        transform: scale(0.5);
+      }
+
+      .carousel-slide.right {
+        transform: translateX(60%) translateZ(-100px);
+        z-index: 1;
+        opacity: 1;
+      }
+
+      .carousel-slide.right img {
+        transform: scale(0.5);
+      }
+
+      .model-info {
+        position: fixed;
+        bottom: 17%;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+        z-index: 1000;
+        width: 100%;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .model-info h2 {
+        color: #fff;
+        font-size: 1.4em;  /* Aumentado de 1.8em para 2.2em */
+        margin: 0;
+        font-weight: bold;
+        line-height: 1;
+      }
+
+      .model-info button {
+        background-color: white;
+        color: #1dbed0;
+        border: 2px solid #1dbed0;
+        padding: 12px 24px;
+        border-radius: 25px;
+        font-size: 0.8em;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: block;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .model-info button:hover {
+        background-color: #3a7a81;
+      }
+
+      .model-info button svg {
+        width: 60px;
+        height: 60px;
+        fill: currentColor;
+      }
+
+      .decorative-lines {
+        position: absolute;
+        width: 120%;
+        height: 120%;
+        pointer-events: none;
+        transform: translate(-10%, -10%);
+      }
+
+      .decorative-lines circle {
+        fill: rgba(255, 255, 255, 0.4);
+        r: 4;
+      }
+
+      .decorative-lines path {
+        stroke: rgba(255, 255, 255, 0.4);
+        stroke-width: 2;
+        fill: none;
+      }
+
+      /* Ajustes para tablet */
+      @media only screen and (min-width: 750px) and (max-width: 1180px) {
+        .carousel-slide.left {
+          transform: translateX(-40%) translateZ(-100px);  /* Reduzido de -60% para -40% */
+        }
+
+        .carousel-slide.right {
+          transform: translateX(40%) translateZ(-100px);  /* Reduzido de 60% para 40% */
+        }
+
+        .carousel-container {
+          margin: 31% auto;  /* Aumentado de 80px para 120px para descer mais */
+        }
+        #logo {
+          width: 200px;
+        }
+        .model-info {
+          bottom: 10%;
+        }
+
+        .model-info button {
+            padding: 20px 15px 20px;
+            max-width: 148px;
+        }
+        .model-info button {
+          margin-top: 7%;
+        }
+
+    }
+
+
+    /* Ajustes para smartphone */
+    @media only screen and (min-width: 320px) and (max-width: 380px) {
+        .carousel-container {
+          margin: 32% auto;  /* Aumentado de 80px para 120px para descer mais */
+          width: 67%;
+        }
+        #logo {
+          width: 200px;
+        }
+        .model-info {
+          bottom: 16%;
+        }
+        .model-info button {
+          font-size: 0.8em;
+          margin-top: 4%;
+          max-width: 148px;
+        }
+        .model-info button svg {
+        width: 25px;
+        height: 25px;
+        }
+        .pulse-button svg{
+          padding-left: 15%;;
+        }
+        
+        
+    }
+
+    /* Ajustes para smartphone */
+    @media only screen and (min-width: 380px) and (max-width: 749px) {
+        .carousel-container {
+          margin: 34% auto;  /* Aumentado de 80px para 120px para descer mais */
+          width: 67%;
+        }
+        #logo {
+          width: 200px;
+        }
+        .model-info {
+          bottom: 16%;
+        }
+        .model-info button {
+          font-size: 0.8em;
+          margin-top: 4%;
+          max-width: 148px;
+        }
+        .model-info button svg {
+        width: 25px;
+        height: 25px;
+        }
+    }
+
+    .background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+    }
+
+    </style>
+  </head>
+  <body>
+    <div class="frame">
+      <img src="iconheader.svg" alt="Frame">
+    </div>
+    <img style="margin-top: 18%; width: 116px; padding-bottom: 5%;" id="logo" src="logo iluma.svg" alt="Logo Iluma">
+
+    <div class="carousel-container">
+      <div class="carousel-slide left" data-model="ILUMA i ONE" data-link="ilumaone.html">
+        <img src="modelos imagens/ILUMAi-ONE_breeze.png" alt="ILUMA i ONE BREEZE">
+      </div>
+      <div class="carousel-slide active" data-model="ILUMA i" data-link="ilumai.html">
+        <img src="modelos imagens/ILUMAi_BREEZE.png" alt="ILUMA i BREEZE">
+      </div>
+      <div class="carousel-slide right" data-model="ILUMA i PRIME" data-link="ilumaprime.html">
+        <img src="modelos imagens/ILUMAi-PRIME_BREEZE.png" alt="ILUMA i PRIME BREEZE">
+      </div>
+    </div>
+
+    <div class="model-info">
+      <h2>ILUMA i</h2>
+      <button style="font-family: 'IQOSSans-Bold';" class="pulse-button" onclick="window.location.href='ilumai.html'">
+       DESCOBRE
+      </button>
+    </div>
+
+    <script>
+      const slides = document.querySelectorAll('.carousel-slide');
+      const prevButton = document.getElementById('prev-button');
+      const nextButton = document.getElementById('next-button');
+      const modelInfo = document.querySelector('.model-info');
+      const carousel = document.querySelector('.carousel-container');
+      let currentSlide = 1; // Começa com o slide do meio
+      let touchStartX = 0;
+      let touchEndX = 0;
+      let isDragging = false;
+      let startDragX = 0;
+      let currentDragX = 0;
+
+      function updateSlides() {
+        slides.forEach((slide, index) => {
+          slide.classList.remove('active', 'left', 'right');
+          
+          if (index === currentSlide) {
+            slide.classList.add('active');
+          } else if (index === (currentSlide - 1 + slides.length) % slides.length) {
+            slide.classList.add('left');
+          } else if (index === (currentSlide + 1) % slides.length) {
+            slide.classList.add('right');
+          }
+        });
+
+        // Atualizar informações do modelo
+        const activeSlide = slides[currentSlide];
+        const modelName = activeSlide.dataset.model;
+        const modelLink = activeSlide.dataset.link;
+        
+        modelInfo.querySelector('h2').textContent = modelName;
+        modelInfo.querySelector('button').onclick = () => window.location.href = modelLink;
+      }
+
+      function nextSlide() {
+        currentSlide = (currentSlide + 1) % slides.length;
+        updateSlides();
+      }
+
+      function prevSlide() {
+        currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+        updateSlides();
+      }
+
+      function selectSlide(index) {
+        currentSlide = index;
+        updateSlides();
+      }
+
+      // Touch Events
+      carousel.addEventListener('touchstart', (e) => {
+        touchStartX = e.touches[0].clientX;
+        isDragging = true;
+        startDragX = e.touches[0].clientX;
+        
+        // Adicionar classe de transição suave
+        carousel.style.transition = 'none';
+      }, { passive: true });
+
+      carousel.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        
+        currentDragX = e.touches[0].clientX;
+        const dragDistance = currentDragX - startDragX;
+        
+        // Aplicar um pequeno efeito de arrasto visual
+        slides.forEach(slide => {
+          slide.style.transform = `translateX(${dragDistance * 0.3}px)`;
+        });
+      }, { passive: true });
+
+      carousel.addEventListener('touchend', (e) => {
+        isDragging = false;
+        touchEndX = currentDragX;
+        
+        // Restaurar transições
+        carousel.style.transition = '';
+        slides.forEach(slide => {
+          slide.style.transform = '';
+        });
+
+        const swipeDistance = touchEndX - touchStartX;
+        
+        // Se o swipe foi significativo (mais de 50px), mudar slide
+        if (Math.abs(swipeDistance) > 50) {
+          if (swipeDistance > 0) {
+            prevSlide();
+          } else {
+            nextSlide();
+          }
+        }
+      });
+
+      // Mouse Events (para desktop)
+      carousel.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startDragX = e.clientX;
+        carousel.style.transition = 'none';
+        e.preventDefault();
+      });
+
+      carousel.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        
+        currentDragX = e.clientX;
+        const dragDistance = currentDragX - startDragX;
+        
+        slides.forEach(slide => {
+          slide.style.transform = `translateX(${dragDistance * 0.3}px)`;
+        });
+      });
+
+      carousel.addEventListener('mouseup', (e) => {
+        if (!isDragging) return;
+        
+        isDragging = false;
+        const dragDistance = e.clientX - startDragX;
+        
+        carousel.style.transition = '';
+        slides.forEach(slide => {
+          slide.style.transform = '';
+        });
+
+        if (Math.abs(dragDistance) > 50) {
+          if (dragDistance > 0) {
+            prevSlide();
+          } else {
+            nextSlide();
+          }
+        }
+      });
+
+      // Limpar arrasto se o mouse sair da janela
+      window.addEventListener('mouseup', () => {
+        if (isDragging) {
+          isDragging = false;
+          carousel.style.transition = '';
+          slides.forEach(slide => {
+            slide.style.transform = '';
+          });
+        }
+      });
+
+      // Event listeners para botões
+      prevButton.addEventListener('click', prevSlide);
+      nextButton.addEventListener('click', nextSlide);
+
+      // Adicionar evento de clique para cada slide
+      slides.forEach((slide, index) => {
+        slide.addEventListener('click', (e) => {
+          // Só seleciona se não estiver arrastando
+          if (!isDragging) {
+            selectSlide(index);
+          }
+        });
+      });
+
+      // Inicializar o carrossel
+      updateSlides();
+    </script>
+  </body>
+</html>
