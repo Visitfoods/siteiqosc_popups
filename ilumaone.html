@@ -182,7 +182,7 @@
         z-index: 999;
         pointer-events: none;
       }
-
+      
       .color-selector {
         position: fixed;
         bottom: 53px;
@@ -412,7 +412,7 @@
       <a href="ilumai.html"><b>Recarregar Página</b></a> 
     </div>
    
-  
+   
     <div class="features-container">
       <div class="feature-item">
       </div>
@@ -458,18 +458,18 @@
 
       <a-light type="ambient" intensity="1"></a-light>
       <a-light type="directional" intensity="0.8" position="-1 1 2"></a-light>
-
-      <!-- Círculos de sombra para cada modelo -->
-      <a-assets>
-        <!-- Filtro de blur para as sombras -->
-        <svg style="display: none;">
-          <defs>
-            <filter id="shadow-blur">
-              <feGaussianBlur stdDeviation="3"></feGaussianBlur>
-            </filter>
-          </defs>
-        </svg>
-      </a-assets>
+    
+    <!-- Círculos de sombra para cada modelo -->
+    <a-assets>
+      <!-- Filtro de blur para as sombras -->
+      <svg style="display: none;">
+        <defs>
+          <filter id="shadow-blur">
+            <feGaussianBlur stdDeviation="3"></feGaussianBlur>
+          </filter>
+        </defs>
+      </svg>
+    </a-assets>
 
       <a-entity id="models-container" position="0 0 0" rotation="0 0 0">
         <!-- Os modelos serão adicionados aqui dinamicamente -->
@@ -600,7 +600,7 @@
           if (errorDiv) {
             errorDiv.textContent = message;
             errorDiv.style.display = 'block';
-            setTimeout(() => {
+        setTimeout(() => {
               errorDiv.style.display = 'none';
             }, 5000);
           }
@@ -829,19 +829,88 @@
         
         // Remover modelo atual se existir
         if (currentModel) {
-          console.log(`Removendo modelo atual: ${currentModel.id}`);
-          modelsContainer.removeChild(currentModel);
+          // Descarregar o modelo atual corretamente
+          if (currentModel.getObject3D('mesh')) {
+            const mesh = currentModel.getObject3D('mesh');
+            
+            // Desconectar materiais e texturas
+            if (mesh) {
+              mesh.traverse((node) => {
+                if (node.isMesh) {
+                  // Limpar materiais
+                  if (node.material) {
+                    const materials = Array.isArray(node.material) ? node.material : [node.material];
+                    materials.forEach((material) => {
+                      // Descarregar texturas
+                      if (material.map) material.map.dispose();
+                      if (material.lightMap) material.lightMap.dispose();
+                      if (material.bumpMap) material.bumpMap.dispose();
+                      if (material.normalMap) material.normalMap.dispose();
+                      if (material.specularMap) material.specularMap.dispose();
+                      if (material.envMap) material.envMap.dispose();
+                      if (material.emissiveMap) material.emissiveMap.dispose();
+                      if (material.metalnessMap) material.metalnessMap.dispose();
+                      if (material.roughnessMap) material.roughnessMap.dispose();
+                      if (material.alphaMap) material.alphaMap.dispose();
+                      if (material.aoMap) material.aoMap.dispose();
+                      if (material.displacementMap) material.displacementMap.dispose();
+                      
+                      // Descarregar material
+                      material.dispose();
+                    });
+                  }
+                  
+                  // Limpar geometrias
+                  if (node.geometry) {
+                    node.geometry.dispose();
+                  }
+                  
+                  // Remover referências
+                  node.material = null;
+                  node.geometry = null;
+                }
+              });
+            }
+            
+            // Remover da cena
+            currentModel.setObject3D('mesh', null);
+          }
+          
+          // Remover todos os event listeners
+          const oldElem = currentModel;
+          oldElem.parentNode.removeChild(oldElem);
+          
+          // Limpar referência
           currentModel = null;
           
-          // Libertar memória
+          // Liberar memória cache e forçar coleta de lixo
           THREE.Cache.clear();
           
-          // Se houver memória para limpar, força garbage collection (quando possível)
+          // Limpar a memória GPU
+          const renderer = document.querySelector('a-scene').renderer;
+          if (renderer) {
+            renderer.renderLists.dispose();
+            renderer.info.reset();
+          }
+          
+          // Forçar garbage collection se disponível
           if (window.gc) {
             window.gc();
           }
+          
+          // Dar um pouco de tempo para a limpeza ocorrer
+          setTimeout(() => {
+            // Criar novo elemento para o modelo
+            createNewModel(color, loadingOverlay, loadingCounter);
+          }, 100);
+        } else {
+          // Se não houver modelo atual, criar um novo imediatamente
+          createNewModel(color, loadingOverlay, loadingCounter);
         }
-        
+      }
+      
+      // Função auxiliar para criar um novo modelo
+      function createNewModel(color, loadingOverlay, loadingCounter) {
         // Criar novo elemento para o modelo
         const newModel = document.createElement('a-entity');
         newModel.id = `modelo-${color}`;

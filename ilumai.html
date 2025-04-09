@@ -2,7 +2,6 @@
 <html>
   <head>
    <!----push-->
-   <!-- Versão otimizada com gestão aprimorada de memória v1.1 - Evita vazamentos durante troca de cores -->
     <title>IQOS ILUMA i</title>
     <link rel="icon" type="image/webp" href="icons/favicon-32x32.webp">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
@@ -452,17 +451,12 @@
     </div>
 
     <a-scene
-    renderer="colorManagement: true; physicallyCorrectLights: true; alpha: false; antialias: true;" 
+    renderer="colorManagement: true, physicallyCorrectLights, alpha: false, antialias: true" 
       vr-mode-ui="enabled: false"
       device-orientation-permission-ui="enabled: false" loading-screen="enabled: false">
 
       <a-assets>
         <!-- Os modelos serão carregados dinamicamente quando necessários -->
-        <a-asset-item id="turquoise-model" src="modelo3d/modelo2/pastel-turquoise.glb"></a-asset-item>
-        <a-asset-item id="navy-model" src="modelo3d/modelo2/navy-blazer.glb"></a-asset-item>
-        <a-asset-item id="olive-model" src="modelo3d/modelo2/olive-green.glb"></a-asset-item>
-        <a-asset-item id="jacaranda-model" src="modelo3d/modelo2/jacaranda.glb"></a-asset-item>
-        <a-asset-item id="rooibos-model" src="modelo3d/modelo2/rooibos-tea.glb"></a-asset-item>
       </a-assets>
 
       <a-entity position="0 0 8">
@@ -810,83 +804,6 @@
           this.touchStartDistance = 0;
         }
       });
-
-      // Componente para gerenciar recursos e limpeza de memóriaa
-      AFRAME.registerComponent('resource-manager', {
-        schema: {
-          dispose: {default: false}
-        },
-        
-        init: function() {
-          this.disposed = false;
-          
-          // Salvar referência ao objeto 3D quando for carregado
-          this.el.addEventListener('model-loaded', (evt) => {
-            this.model = this.el.getObject3D('mesh');
-            console.log('Modelo armazenado para gerenciamento de recursos');
-          });
-        },
-        
-        update: function(oldData) {
-          // Quando a propriedade 'dispose' é alterada para true, limpa os recursos
-          if (!oldData.dispose && this.data.dispose && !this.disposed) {
-            this.disposeResources();
-          }
-        },
-        
-        remove: function() {
-          // Limpa recursos quando o componente é removido
-          this.disposeResources();
-        },
-        
-        disposeResources: function() {
-          if (this.disposed || !this.model) return;
-          
-          console.log('Limpando recursos do modelo');
-          
-          // Limpeza em profundidade de todos os recursos
-          this.model.traverse((node) => {
-            if (node.isMesh) {
-              if (node.geometry) {
-                console.log('Liberando geometria');
-                node.geometry.dispose();
-              }
-              
-              if (node.material) {
-                const materials = Array.isArray(node.material) ? node.material : [node.material];
-                materials.forEach((material) => {
-                  // Liberar texturas
-                  console.log('Liberando material e texturas');
-                  if (material.map) material.map.dispose();
-                  if (material.lightMap) material.lightMap.dispose();
-                  if (material.aoMap) material.aoMap.dispose();
-                  if (material.emissiveMap) material.emissiveMap.dispose();
-                  if (material.bumpMap) material.bumpMap.dispose();
-                  if (material.normalMap) material.normalMap.dispose();
-                  if (material.displacementMap) material.displacementMap.dispose();
-                  if (material.roughnessMap) material.roughnessMap.dispose();
-                  if (material.metalnessMap) material.metalnessMap.dispose();
-                  if (material.alphaMap) material.alphaMap.dispose();
-                  if (material.envMap) material.envMap.dispose();
-                  
-                  material.dispose();
-                });
-              }
-            }
-          });
-          
-          // Remover da memória
-          this.model = null;
-          this.disposed = true;
-          
-          // Ajuda a force liberar memória
-          if (typeof window.navigator !== 'undefined' && window.navigator.gpu) {
-            window.navigator.gpu.wrappers = {};
-          }
-          
-          THREE.Cache.clear();
-        }
-      });
     </script>
     
 
@@ -900,48 +817,27 @@
       
       // Mapeamento dos modelos e seus URLs
       const modelURLs = {
-        'turquoise': '#turquoise-model',
-        'navy': '#navy-model',
-        'olive': '#olive-model',
-        'rooibos': '#rooibos-model',
-        'jacaranda': '#jacaranda-model'
+        'turquoise': 'modelo3d/modelo2/pastel-turquoise.glb',
+        'navy': 'modelo3d/modelo2/navy-blazer.glb',
+        'olive': 'modelo3d/modelo2/olive-green.glb',
+        'rooibos': 'modelo3d/modelo2/rooibos-tea.glb',
+        'jacaranda': 'modelo3d/modelo2/jacaranda.glb'
       };
 
       // Configurações padrão para todos os modelos
       const modelConfig = {
         scale: '20 20 20',
         'gesture-handler-custom': '',
-        'remove-transparency': '',
-        'resource-manager': ''
+        'remove-transparency': ''
       };
 
-      // Função para verificar se os arquivos existem
-      function checkModelFiles() {
-        console.log("Verificando arquivos de modelos...");
-        const modelPaths = [
-          'modelo3d/modelo2/pastel-turquoise.glb',
-          'modelo3d/modelo2/navy-blazer.glb',
-          'modelo3d/modelo2/olive-green.glb',
-          'modelo3d/modelo2/jacaranda.glb',
-          'modelo3d/modelo2/rooibos-tea.glb'
-        ];
-        
-        // Verificar cada modelo usando fetch
-        modelPaths.forEach(path => {
-          fetch(path)
-            .then(response => {
-              if (response.ok) {
-                console.log(`Arquivo encontrado: ${path}`);
-              } else {
-                console.error(`Arquivo não encontrado: ${path} - Status: ${response.status}`);
-              }
-            })
-            .catch(error => {
-              console.error(`Erro ao verificar arquivo ${path}:`, error);
-            });
-        });
-      }
 
+
+            
+      
+
+
+      
       // Função para carregar um modelo específico
       function loadModel(color) {
         // Mostrar overlay de carregamento
@@ -952,113 +848,117 @@
         
         console.log(`Carregando modelo: ${color}`);
         
-        // Verificar se o URL do modelo existe
-        if (!modelURLs[color]) {
-          console.error(`URL do modelo para a cor ${color} não encontrado`);
-          loadingOverlay.style.display = 'none';
-          loadingCounter.textContent = 'Erro: modelo não encontrado';
-          return;
-        }
-        
         // Remover modelo atual se existir
         if (currentModel) {
-          console.log(`Removendo modelo atual: ${currentModel.id}`);
-          
-          try {
-            // Ativar a limpeza de recursos através do componente
-            currentModel.setAttribute('resource-manager', {dispose: true});
+          // Descarregar o modelo atual corretamente
+          if (currentModel.getObject3D('mesh')) {
+            const mesh = currentModel.getObject3D('mesh');
             
-            // Remover referências ao modelo
-            currentModel.setAttribute('gltf-model', '');
-            currentModel.removeAttribute('gltf-model');
+            // Desconectar materiais e texturas
+            if (mesh) {
+              mesh.traverse((node) => {
+                if (node.isMesh) {
+                  // Limpar materiais
+                  if (node.material) {
+                    const materials = Array.isArray(node.material) ? node.material : [node.material];
+                    materials.forEach((material) => {
+                      // Descarregar texturas
+                      if (material.map) material.map.dispose();
+                      if (material.lightMap) material.lightMap.dispose();
+                      if (material.bumpMap) material.bumpMap.dispose();
+                      if (material.normalMap) material.normalMap.dispose();
+                      if (material.specularMap) material.specularMap.dispose();
+                      if (material.envMap) material.envMap.dispose();
+                      if (material.emissiveMap) material.emissiveMap.dispose();
+                      if (material.metalnessMap) material.metalnessMap.dispose();
+                      if (material.roughnessMap) material.roughnessMap.dispose();
+                      if (material.alphaMap) material.alphaMap.dispose();
+                      if (material.aoMap) material.aoMap.dispose();
+                      if (material.displacementMap) material.displacementMap.dispose();
+                      
+                      // Descarregar material
+                      material.dispose();
+                    });
+                  }
+                  
+                  // Limpar geometrias
+                  if (node.geometry) {
+                    node.geometry.dispose();
+                  }
+                  
+                  // Remover referências
+                  node.material = null;
+                  node.geometry = null;
+                }
+              });
+            }
             
-            // Remover entidade da cena
-            modelsContainer.removeChild(currentModel);
-          } catch (e) {
-            console.error('Erro ao remover modelo atual:', e);
+            // Remover da cena
+            currentModel.setObject3D('mesh', null);
           }
           
+          // Remover todos os event listeners
+          const oldElem = currentModel;
+          oldElem.parentNode.removeChild(oldElem);
+          
+          // Limpar referência
           currentModel = null;
           
-          // Forçar limpeza do cache
+          // Liberar memória cache e forçar coleta de lixo
           THREE.Cache.clear();
           
-          // Pequeno delay para garantir que a memória seja liberada antes de carregar o novo modelo
+          // Limpar a memória GPU
+          const renderer = document.querySelector('a-scene').renderer;
+          if (renderer) {
+            renderer.renderLists.dispose();
+            renderer.info.reset();
+          }
+          
+          // Forçar garbage collection se disponível
+          if (window.gc) {
+            window.gc();
+          }
+          
+          // Dar um pouco de tempo para a limpeza ocorrer
           setTimeout(() => {
-            createAndLoadNewModel(color);
-          }, 300);
+            // Criar novo elemento para o modelo
+            createNewModel(color, loadingOverlay, loadingCounter);
+          }, 100);
         } else {
-          createAndLoadNewModel(color);
+          // Se não houver modelo atual, criar um novo imediatamente
+          createNewModel(color, loadingOverlay, loadingCounter);
         }
       }
       
-      // Função para criar e carregar o novo modelo
-      function createAndLoadNewModel(color) {
-        try {
-          console.log(`Criando novo modelo para cor: ${color}`);
-          console.log(`URL do modelo: ${modelURLs[color]}`);
-          
-          // Desabilitar opções de cor durante o carregamento
-          if (window.updateColorOptionsState) {
-            window.updateColorOptionsState(true);
-          }
-          
-          // Criar novo elemento para o modelo
-          const newModel = document.createElement('a-entity');
-          newModel.id = `modelo-${color}`;
-          
-          // Configurar o novo modelo
-          for (const [attr, value] of Object.entries(modelConfig)) {
-            newModel.setAttribute(attr, value);
-          }
-          
-          // Adicionar modelo ao container
-          modelsContainer.appendChild(newModel);
-          currentModel = newModel;
-          
-          // Carregar o modelo depois de adicionar à cena
-          newModel.addEventListener('model-loaded', () => {
-            console.log(`Modelo ${color} carregado com sucesso`);
-            loadingOverlay.style.display = 'none';
-            
-            // Reabilitar opções de cor após o carregamento
-            if (window.updateColorOptionsState) {
-              window.updateColorOptionsState(false);
-            }
-            
-            // Força uma renderização completa
-            const scene = document.querySelector('a-scene').object3D;
-            if (scene) {
-              scene.updateMatrixWorld(true);
-            }
-          });
-          
-          newModel.addEventListener('model-error', (error) => {
-            console.error(`Erro ao carregar modelo ${color}:`, error);
-            console.error('Detalhes do erro:', JSON.stringify(error.detail));
-            loadingOverlay.style.display = 'none';
-            loadingCounter.textContent = 'Erro ao carregar modelo';
-            
-            // Reabilitar opções de cor após o erro
-            if (window.updateColorOptionsState) {
-              window.updateColorOptionsState(false);
-            }
-          });
-          
-          // Iniciar carregamento do modelo
-          const modelUrl = modelURLs[color];
-          console.log(`Definindo atributo gltf-model para: ${modelUrl}`);
-          newModel.setAttribute('gltf-model', modelUrl);
-        } catch (e) {
-          console.error('Erro ao criar e carregar novo modelo:', e);
-          loadingOverlay.style.display = 'none';
-          loadingCounter.textContent = 'Erro: falha no carregamento';
-          
-          // Reabilitar opções de cor após o erro
-          if (window.updateColorOptionsState) {
-            window.updateColorOptionsState(false);
-          }
+      // Função auxiliar para criar um novo modelo
+      function createNewModel(color, loadingOverlay, loadingCounter) {
+        // Criar novo elemento para o modelo
+        const newModel = document.createElement('a-entity');
+        newModel.id = `modelo-${color}`;
+        
+        // Configurar o novo modelo
+        for (const [attr, value] of Object.entries(modelConfig)) {
+          newModel.setAttribute(attr, value);
         }
+        
+        // Adicionar modelo ao container
+        modelsContainer.appendChild(newModel);
+        currentModel = newModel;
+        
+        // Carregar o modelo depois de adicionar à cena
+        newModel.addEventListener('model-loaded', () => {
+          console.log(`Modelo ${color} carregado com sucesso`);
+          loadingOverlay.style.display = 'none';
+        });
+        
+        newModel.addEventListener('model-error', (error) => {
+          console.error(`Erro ao carregar modelo ${color}:`, error);
+          loadingOverlay.style.display = 'none';
+          loadingCounter.textContent = 'Erro ao carregar modelo';
+        });
+        
+        // Iniciar carregamento do modelo
+        newModel.setAttribute('gltf-model', modelURLs[color]);
       }
 
       // Função para mudar de cor
@@ -1068,21 +968,8 @@
         const validColors = ['turquoise', 'navy', 'olive', 'jacaranda', 'rooibos'];
         if (!validColors.includes(color)) {
           console.error('Cor inválida:', color);
-          return;
-        }
-
-        // Se já estiver carregando, não fazer nada
-        const loadingOverlay = document.getElementById('loading-overlay');
-        if (loadingOverlay.style.display === 'flex') {
-          console.log('Carregamento em progresso, ignorando troca de cor');
-          return;
-        }
-        
-        // Se for a mesma cor, não fazer nada
-        if (currentColor === color) {
-          console.log('Mesma cor selecionada, ignorando troca');
-          return;
-        }
+            return;
+          }
 
         // Atualizar cor atual
         currentColor = color;
@@ -1096,87 +983,26 @@
         
         // Carregar o modelo correspondente
         loadModel(color);
-        
-        // Forçar uma atualização global
-        setTimeout(() => {
-          // Limpar cache de texturas e geometrias não utilizadas
-          const scene = document.querySelector('a-scene');
-          if (scene.renderer) {
-            scene.renderer.dispose();
-            scene.renderer.info.reset();
-          }
-          
-          // Tentar liberar memória adicional
-          if (window.gc) window.gc();
-          if (window.performance && window.performance.memory) {
-            console.log('Uso de memória:', window.performance.memory);
-          }
-        }, 500);
       }
 
       // Inicialização
       function initializeScene() {
         console.log('Inicializando cena...');
         
-        // Verificar arquivos de modelos
-        checkModelFiles();
-        
-        // Configurar opções do renderizador para melhor gestão de memória
-        const sceneEl = document.querySelector('a-scene');
-        if (sceneEl.renderer) {
-          // Definir opções para melhorar performance e gestão de memória
-          sceneEl.renderer.dispose();
-          sceneEl.renderer.shadowMap.autoUpdate = false;
-          sceneEl.renderer.shadowMap.needsUpdate = true;
-          sceneEl.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-          
-          // Limitar o cache de texturas
-          THREE.Cache.enabled = true;
-          THREE.Cache.limitSize = 50 * 1024 * 1024; // 50MB
-        }
-        
-        // Limpar a cena de entidades anteriores
-        if (modelsContainer) {
-          while (modelsContainer.firstChild) {
-            modelsContainer.removeChild(modelsContainer.firstChild);
-          }
-        }
-        
         // Carregar o modelo inicial após um breve delay
-        setTimeout(() => {
+          setTimeout(() => {
           changeColor('turquoise');
         }, 500);
-        
-        // Adicionar detector de vazamento de memória
-        window.addEventListener('visibilitychange', () => {
-          if (document.hidden) {
-            // Página está oculta, limpar recursos para economizar memória
-            console.log('Página em segundo plano, limpando recursos');
-            THREE.Cache.clear();
-          }
-        });
       }
 
       // Event Listeners
       window.addEventListener('load', () => {
         console.log('Página carregada');
-        
-        // Adicionar erro global para detecção de falhas de carregamento
-        window.addEventListener('error', function(e) {
-          console.error('Erro global detectado:', e);
-          const loadingOverlay = document.getElementById('loading-overlay');
-          const loadingCounter = document.getElementById('loading-counter');
-          
-          if (e.target && (e.target.tagName === 'A-ASSET-ITEM' || e.target.tagName === 'IMG' || e.target.tagName === 'AUDIO')) {
-            loadingCounter.textContent = `Erro ao carregar recurso: ${e.target.src || e.target.href}`;
-          }
-        }, true);
-        
         initializeScene();
       });
 
       // Adicionar event listeners para os botões de cor
-      window.addEventListener('DOMContentLoaded', function() {
+      document.addEventListener('DOMContentLoaded', function() {
         const colorOptions = document.querySelectorAll('.color-option');
         colorOptions.forEach(option => {
           option.addEventListener('click', function(e) {
@@ -1186,26 +1012,6 @@
             changeColor(color);
           });
         });
-
-        // Adicionar monitoramento para erros de carregamento de assets
-        const assets = document.querySelectorAll('a-asset-item');
-        assets.forEach(asset => {
-          asset.addEventListener('error', function(e) {
-            console.error(`Erro ao carregar asset: ${this.id}`, e);
-            alert(`Erro ao carregar modelo: ${this.id}. Verifique o console para mais detalhes.`);
-          });
-        });
-
-        // Desabilitar o clique em opções de cor durante o carregamento
-        function updateColorOptionsState(disabled) {
-          colorOptions.forEach(option => {
-            option.style.pointerEvents = disabled ? 'none' : 'auto';
-            option.style.opacity = disabled ? '0.5' : '1';
-          });
-        }
-
-        // Expor a função para uso global
-        window.updateColorOptionsState = updateColorOptionsState;
       });
     </script>
 
