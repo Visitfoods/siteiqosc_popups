@@ -804,6 +804,83 @@
           this.touchStartDistance = 0;
         }
       });
+
+      // Componente para gerenciar recursos e limpeza de memória
+      AFRAME.registerComponent('resource-manager', {
+        schema: {
+          dispose: {default: false}
+        },
+        
+        init: function() {
+          this.disposed = false;
+          
+          // Salvar referência ao objeto 3D quando for carregado
+          this.el.addEventListener('model-loaded', (evt) => {
+            this.model = this.el.getObject3D('mesh');
+            console.log('Modelo armazenado para gerenciamento de recursos');
+          });
+        },
+        
+        update: function(oldData) {
+          // Quando a propriedade 'dispose' é alterada para true, limpa os recursos
+          if (!oldData.dispose && this.data.dispose && !this.disposed) {
+            this.disposeResources();
+          }
+        },
+        
+        remove: function() {
+          // Limpa recursos quando o componente é removido
+          this.disposeResources();
+        },
+        
+        disposeResources: function() {
+          if (this.disposed || !this.model) return;
+          
+          console.log('Limpando recursos do modelo');
+          
+          // Limpeza em profundidade de todos os recursos
+          this.model.traverse((node) => {
+            if (node.isMesh) {
+              if (node.geometry) {
+                console.log('Liberando geometria');
+                node.geometry.dispose();
+              }
+              
+              if (node.material) {
+                const materials = Array.isArray(node.material) ? node.material : [node.material];
+                materials.forEach((material) => {
+                  // Liberar texturas
+                  console.log('Liberando material e texturas');
+                  if (material.map) material.map.dispose();
+                  if (material.lightMap) material.lightMap.dispose();
+                  if (material.aoMap) material.aoMap.dispose();
+                  if (material.emissiveMap) material.emissiveMap.dispose();
+                  if (material.bumpMap) material.bumpMap.dispose();
+                  if (material.normalMap) material.normalMap.dispose();
+                  if (material.displacementMap) material.displacementMap.dispose();
+                  if (material.roughnessMap) material.roughnessMap.dispose();
+                  if (material.metalnessMap) material.metalnessMap.dispose();
+                  if (material.alphaMap) material.alphaMap.dispose();
+                  if (material.envMap) material.envMap.dispose();
+                  
+                  material.dispose();
+                });
+              }
+            }
+          });
+          
+          // Remover da memória
+          this.model = null;
+          this.disposed = true;
+          
+          // Ajuda a force liberar memória
+          if (typeof window.navigator !== 'undefined' && window.navigator.gpu) {
+            window.navigator.gpu.wrappers = {};
+          }
+          
+          THREE.Cache.clear();
+        }
+      });
     </script>
     
 
@@ -828,7 +905,8 @@
       const modelConfig = {
         scale: '20 20 20',
         'gesture-handler-custom': '',
-        'remove-transparency': ''
+        'remove-transparency': '',
+        'resource-manager': ''
       };
 
 
@@ -851,18 +929,38 @@
         // Remover modelo atual se existir
         if (currentModel) {
           console.log(`Removendo modelo atual: ${currentModel.id}`);
+          
+          // Ativar a limpeza de recursos através do componente
+          currentModel.setAttribute('resource-manager', 'dispose', true);
+          
+          // Remover referências ao modelo
+          currentModel.setAttribute('gltf-model', '');
+          currentModel.removeAttribute('gltf-model');
+          
+          // Remover entidade da cena
           modelsContainer.removeChild(currentModel);
           currentModel = null;
           
-          // Libertar memória
+          // Forçar limpeza do cache
           THREE.Cache.clear();
           
-          // Se houver memória para limpar, força garbage collection (quando possível)
-          if (window.gc) {
-            window.gc();
+          // Forçar uma atualização do renderizador
+          const renderer = document.querySelector('a-scene').renderer;
+          if (renderer) {
+            renderer.info.reset();
           }
+          
+          // Pequeno delay para garantir que a memória seja liberada antes de carregar o novo modelo
+          setTimeout(() => {
+            createAndLoadNewModel(color);
+          }, 200);
+        } else {
+          createAndLoadNewModel(color);
         }
-        
+      }
+      
+      // Função para criar e carregar o novo modelo
+      function createAndLoadNewModel(color) {
         // Criar novo elemento para o modelo
         const newModel = document.createElement('a-entity');
         newModel.id = `modelo-${color}`;
@@ -880,6 +978,12 @@
         newModel.addEventListener('model-loaded', () => {
           console.log(`Modelo ${color} carregado com sucesso`);
           loadingOverlay.style.display = 'none';
+          
+          // Força uma renderização completa
+          const scene = document.querySelector('a-scene').object3D;
+          if (scene) {
+            scene.updateMatrixWorld(true);
+          }
         });
         
         newModel.addEventListener('model-error', (error) => {
@@ -899,8 +1003,21 @@
         const validColors = ['turquoise', 'navy', 'olive', 'jacaranda', 'rooibos'];
         if (!validColors.includes(color)) {
           console.error('Cor inválida:', color);
-            return;
-          }
+          return;
+        }
+
+        // Se já estiver carregando, não fazer nada
+        const loadingOverlay = document.getElementById('loading-overlay');
+        if (loadingOverlay.style.display === 'flex') {
+          console.log('Carregamento em progresso, ignorando troca de cor');
+          return;
+        }
+        
+        // Se for a mesma cor, não fazer nada
+        if (currentColor === color) {
+          console.log('Mesma cor selecionada, ignorando troca');
+          return;
+        }
 
         // Atualizar cor atual
         currentColor = color;
@@ -914,16 +1031,62 @@
         
         // Carregar o modelo correspondente
         loadModel(color);
+        
+        // Forçar uma atualização global
+        setTimeout(() => {
+          // Limpar cache de texturas e geometrias não utilizadas
+          const scene = document.querySelector('a-scene');
+          if (scene.renderer) {
+            scene.renderer.dispose();
+            scene.renderer.info.reset();
+          }
+          
+          // Tentar liberar memória adicional
+          if (window.gc) window.gc();
+          if (window.performance && window.performance.memory) {
+            console.log('Uso de memória:', window.performance.memory);
+          }
+        }, 500);
       }
 
       // Inicialização
       function initializeScene() {
         console.log('Inicializando cena...');
         
+        // Configurar opções do renderizador para melhor gestão de memória
+        const sceneEl = document.querySelector('a-scene');
+        if (sceneEl.renderer) {
+          // Definir opções para melhorar performance e gestão de memória
+          sceneEl.renderer.dispose();
+          sceneEl.renderer.shadowMap.autoUpdate = false;
+          sceneEl.renderer.shadowMap.needsUpdate = true;
+          sceneEl.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+          
+          // Limitar o cache de texturas
+          THREE.Cache.enabled = true;
+          THREE.Cache.limitSize = 50 * 1024 * 1024; // 50MB
+        }
+        
+        // Limpar a cena de entidades anteriores
+        if (modelsContainer) {
+          while (modelsContainer.firstChild) {
+            modelsContainer.removeChild(modelsContainer.firstChild);
+          }
+        }
+        
         // Carregar o modelo inicial após um breve delay
-          setTimeout(() => {
+        setTimeout(() => {
           changeColor('turquoise');
         }, 500);
+        
+        // Adicionar detector de vazamento de memória
+        window.addEventListener('visibilitychange', () => {
+          if (document.hidden) {
+            // Página está oculta, limpar recursos para economizar memória
+            console.log('Página em segundo plano, limpando recursos');
+            THREE.Cache.clear();
+          }
+        });
       }
 
       // Event Listeners
