@@ -800,31 +800,66 @@
       let loadingRemoved = false;
       let currentModel = null;
       
-      // Mapeamento dos modelos e seus URLs
-      const modelURLs = {
-        'turquoise': 'modelo3d/modelo_IQOS ILUMA ONE/pastel-turquoise.glb',
-        'navy': 'modelo3d/modelo_IQOS ILUMA ONE/navy-blazer.glb',
-        'olive': 'modelo3d/modelo_IQOS ILUMA ONE/olive-green.glb',
-        'rooibos': 'modelo3d/modelo_IQOS ILUMA ONE/rooibos-tea.glb',
-        'jacaranda': 'modelo3d/modelo_IQOS ILUMA ONE/jacaranda.glb'
+      // Mapeamento de cores para valores RGB/Hex
+      const colorValues = {
+        'turquoise': '#4A919E',
+        'navy': '#1E1E1E',
+        'olive': '#8a8e28',
+        'rooibos': '#A75D5D',
+        'jacaranda': '#898FC8'
       };
+      
+      // Caminho para o modelo base (usamos apenas um modelo)
+      const baseModelURL = 'modelo3d/modelo_IQOS ILUMA ONE/pastel-turquoise.glb';
 
-      // Configurações padrão para todos os modelos
+      // Configurações padrão para o modelo
       const modelConfig = {
         scale: '20 20 20',
         'gesture-handler-custom': '',
         'remove-transparency': ''
       };
 
-      // Função para carregar um modelo específico
-      function loadModel(color) {
+      // Componente A-Frame para gerenciar a cor do modelo
+      AFRAME.registerComponent('color-changer', {
+        init: function() {
+          this.el.addEventListener('model-loaded', this.updateColor.bind(this));
+        },
+        
+        updateColor: function() {
+          const color = this.el.getAttribute('data-color');
+          if (!color || !colorValues[color]) return;
+          
+          const mesh = this.el.getObject3D('mesh');
+          if (!mesh) return;
+          
+          // Aplicar a cor ao material do modelo
+          mesh.traverse((node) => {
+            if (node.isMesh && node.material) {
+              const materials = Array.isArray(node.material) ? node.material : [node.material];
+              
+              materials.forEach((material) => {
+                // Verificar se o material tem cor (pode ser um material especular ou outro tipo)
+                if (material.color) {
+                  material.color.set(colorValues[color]);
+                  material.needsUpdate = true;
+                }
+              });
+            }
+          });
+          
+          console.log(`Cor do modelo alterada para: ${color} (${colorValues[color]})`);
+        }
+      });
+
+      // Função para carregar o modelo base
+      function loadBaseModel() {
         // Mostrar overlay de carregamento
         const loadingOverlay = document.getElementById('loading-overlay');
         loadingOverlay.style.display = 'flex';
         const loadingCounter = document.getElementById('loading-counter');
         loadingCounter.textContent = 'Carregando modelo...';
         
-        console.log(`Carregando modelo: ${color}`);
+        console.log('Carregando modelo base');
         
         // Remover modelo atual se existir
         if (currentModel) {
@@ -843,12 +878,16 @@
         
         // Criar novo elemento para o modelo
         const newModel = document.createElement('a-entity');
-        newModel.id = `modelo-${color}`;
+        newModel.id = 'modelo-base';
         
         // Configurar o novo modelo
         for (const [attr, value] of Object.entries(modelConfig)) {
           newModel.setAttribute(attr, value);
         }
+        
+        // Adicionar componente de troca de cor
+        newModel.setAttribute('color-changer', '');
+        newModel.setAttribute('data-color', currentColor);
         
         // Adicionar modelo ao container
         modelsContainer.appendChild(newModel);
@@ -856,18 +895,18 @@
         
         // Carregar o modelo depois de adicionar à cena
         newModel.addEventListener('model-loaded', () => {
-          console.log(`Modelo ${color} carregado com sucesso`);
+          console.log('Modelo base carregado com sucesso');
           loadingOverlay.style.display = 'none';
         });
         
         newModel.addEventListener('model-error', (error) => {
-          console.error(`Erro ao carregar modelo ${color}:`, error);
+          console.error('Erro ao carregar modelo base:', error);
           loadingOverlay.style.display = 'none';
           loadingCounter.textContent = 'Erro ao carregar modelo';
         });
         
         // Iniciar carregamento do modelo
-        newModel.setAttribute('gltf-model', modelURLs[color]);
+        newModel.setAttribute('gltf-model', baseModelURL);
       }
 
       // Função para mudar de cor
@@ -877,8 +916,8 @@
         const validColors = ['turquoise', 'navy', 'olive', 'jacaranda', 'rooibos'];
         if (!validColors.includes(color)) {
           console.error('Cor inválida:', color);
-            return;
-          }
+          return;
+        }
 
         // Atualizar cor atual
         currentColor = color;
@@ -890,8 +929,19 @@
           console.log(`Botão ${option.getAttribute('data-color')}: ${isSelected ? 'ativo' : 'inativo'}`);
         });
         
-        // Carregar o modelo correspondente
-        loadModel(color);
+        // Se o modelo já estiver carregado, apenas alterar a cor
+        if (currentModel) {
+          currentModel.setAttribute('data-color', color);
+          
+          // Forçar a atualização da cor
+          const colorChangerComponent = currentModel.components['color-changer'];
+          if (colorChangerComponent) {
+            colorChangerComponent.updateColor();
+          }
+        } else {
+          // Se não houver modelo carregado, carregamos o modelo base
+          loadBaseModel();
+        }
       }
 
       // Inicialização
@@ -899,8 +949,8 @@
         console.log('Inicializando cena...');
         
         // Carregar o modelo inicial após um breve delay
-          setTimeout(() => {
-          changeColor('turquoise');
+        setTimeout(() => {
+          loadBaseModel();
         }, 500);
       }
 
