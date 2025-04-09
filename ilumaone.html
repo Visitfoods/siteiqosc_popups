@@ -551,7 +551,6 @@
               // Criar elemento de vídeo para a câmera
               const video = document.createElement('video');
               video.srcObject = stream;
-              videoElement.muted = true; // Torna o vídeo mudo, essencial para autoplay no Safari
               video.classList.add('camera-feed');
               video.setAttribute('playsinline', '');
               video.setAttribute('webkit-playsinline', '');
