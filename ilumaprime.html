@@ -496,10 +496,10 @@
 
 
     <div class="color-selector">
-      <div class="color-option active" style="background-color: #7EC4BC;" data-color="turquoise"></div>
-      <div class="color-option" style="background-color: #131d2b;" data-color="navy"></div>
-      <div class="color-option" style="background-color: #0f2e27;" data-color="olive"></div>
-      <div class="color-option" style="background-color: #2d1e27;" data-color="jacaranda"></div>
+      <div class="color-option active" style="background-color: #7EC4BC;" data-color="light-olive" data-model="olive"></div>
+      <div class="color-option" style="background-color: #0f2e27;" data-color="dark-olive" data-model="olive"></div>
+      <div class="color-option" style="background-color: #131d2b;" data-color="light-navy" data-model="navy"></div>
+      <div class="color-option" style="background-color: #2d1e27;" data-color="dark-navy" data-model="navy"></div>
     </div>
     <div class="color-selector-frame"></div>
 
@@ -805,26 +805,25 @@
 
     <script>
       // Variáveis globais
-      let currentColor = 'turquoise';
+      let currentColor = 'light-olive';
+      let currentModel = 'olive';
       const sceneEl = document.querySelector('a-scene');
       const modelsContainer = document.getElementById('models-container');
       let loadingRemoved = false;
-      let currentModel = null;
+      let currentModelEntity = null;
       
       // Mapeamento de cores para valores RGB/Hex
       const colorValues = {
-        'turquoise': '#7EC4BC',
-        'navy': '#131d2b',
-        'olive': '#0f2e27',
-        'jacaranda': '#2d1e27'
+        'light-olive': '#7EC4BC',
+        'dark-olive': '#0f2e27',
+        'light-navy': '#131d2b',
+        'dark-navy': '#2d1e27'
       };
       
-      // Mapeamento de cores para modelos específicos
-      const colorToModel = {
-        'turquoise': 'olive-green.glb', // Cor #7EC4BC usa modelo olive-green.glb
-        'olive': 'olive-green.glb',     // Cor #0f2e27 usa modelo olive-green.glb
-        'navy': 'navy-blazer.glb',      // Cor #131d2b usa modelo navy-blazer.glb
-        'jacaranda': 'navy-blazer.glb'  // Cor #2d1e27 usa modelo navy-blazer.glb
+      // Mapeamento dos modelos e seus URLs
+      const modelURLs = {
+        'olive': 'modelo3d/modelo3_prime/olive-green.glb',
+        'navy': 'modelo3d/modelo3_prime/navy-blazer.glb'
       };
 
       // Configurações padrão para todos os modelos
@@ -867,20 +866,20 @@
       });
 
       // Função para carregar um modelo específico
-      function loadModel(color) {
+      function loadModel(modelType, colorName) {
         // Mostrar overlay de carregamento
         const loadingOverlay = document.getElementById('loading-overlay');
         loadingOverlay.style.display = 'flex';
         const loadingCounter = document.getElementById('loading-counter');
         loadingCounter.textContent = 'Carregando modelo...';
         
-        console.log(`Carregando modelo para cor: ${color}`);
+        console.log(`Carregando modelo: ${modelType} com cor ${colorName}`);
         
         // Remover modelo atual se existir
-        if (currentModel) {
-          console.log(`Removendo modelo atual: ${currentModel.id}`);
-          modelsContainer.removeChild(currentModel);
-          currentModel = null;
+        if (currentModelEntity) {
+          console.log(`Removendo modelo atual: ${currentModelEntity.id}`);
+          modelsContainer.removeChild(currentModelEntity);
+          currentModelEntity = null;
           
           // Libertar memória
           THREE.Cache.clear();
@@ -891,13 +890,9 @@
           }
         }
         
-        // Determinar qual modelo usar baseado na cor
-        const modelFile = colorToModel[color];
-        const modelURL = `modelo3d/modelo3_prime/${modelFile}`;
-        
         // Criar novo elemento para o modelo
         const newModel = document.createElement('a-entity');
-        newModel.id = `modelo-${color}`;
+        newModel.id = `modelo-${modelType}`;
         
         // Configurar o novo modelo
         for (const [attr, value] of Object.entries(modelConfig)) {
@@ -906,50 +901,59 @@
         
         // Adicionar componente de troca de cor
         newModel.setAttribute('color-changer', '');
-        newModel.setAttribute('data-color', color);
+        newModel.setAttribute('data-color', colorName);
         
         // Adicionar modelo ao container
         modelsContainer.appendChild(newModel);
-        currentModel = newModel;
+        currentModelEntity = newModel;
         
         // Carregar o modelo depois de adicionar à cena
         newModel.addEventListener('model-loaded', () => {
-          console.log(`Modelo ${modelFile} para cor ${color} carregado com sucesso`);
+          console.log(`Modelo ${modelType} carregado com sucesso`);
           loadingOverlay.style.display = 'none';
+          
+          // Forçar a atualização da cor após o carregamento
+          const colorChangerComponent = newModel.components['color-changer'];
+          if (colorChangerComponent) {
+            colorChangerComponent.updateColor();
+          }
         });
         
         newModel.addEventListener('model-error', (error) => {
-          console.error(`Erro ao carregar modelo ${modelFile} para cor ${color}:`, error);
+          console.error(`Erro ao carregar modelo ${modelType}:`, error);
           loadingOverlay.style.display = 'none';
           loadingCounter.textContent = 'Erro ao carregar modelo';
         });
         
         // Iniciar carregamento do modelo
-        newModel.setAttribute('gltf-model', modelURL);
+        newModel.setAttribute('gltf-model', modelURLs[modelType]);
       }
 
-      // Função para mudar de cor
-      function changeColor(color) {
-        console.log('Mudando cor para:', color);
+      // Função para mudar de cor e modelo
+      function changeColorAndModel(colorOption) {
+        const color = colorOption.getAttribute('data-color');
+        const model = colorOption.getAttribute('data-model');
         
-        const validColors = ['turquoise', 'navy', 'olive', 'jacaranda'];
-        if (!validColors.includes(color)) {
-          console.error('Cor inválida:', color);
+        console.log('Mudando para:', color, model);
+        
+        // Validar cores e modelos
+        if (!colorValues[color] || !modelURLs[model]) {
+          console.error('Cor ou modelo inválidos:', color, model);
           return;
         }
 
-        // Atualizar cor atual
+        // Atualizar valores atuais
         currentColor = color;
+        currentModel = model;
         
         // Atualizar botões de seleção de cor
         document.querySelectorAll('.color-option').forEach(option => {
           const isSelected = option.getAttribute('data-color') === color;
           option.classList.toggle('active', isSelected);
-          console.log(`Botão ${option.getAttribute('data-color')}: ${isSelected ? 'ativo' : 'inativo'}`);
         });
         
-        // Carregar o modelo correspondente
-        loadModel(color);
+        // Carregar o modelo correspondente com a cor selecionada
+        loadModel(model, color);
       }
 
       // Inicialização
@@ -958,7 +962,14 @@
         
         // Carregar o modelo inicial após um breve delay
         setTimeout(() => {
-          changeColor('turquoise');
+          // Usar o primeiro botão de cor como padrão
+          const defaultOption = document.querySelector('.color-option.active');
+          if (defaultOption) {
+            changeColorAndModel(defaultOption);
+          } else {
+            // Fallback se não houver nenhum marcado como ativo
+            loadModel('olive', 'light-olive');
+          }
         }, 500);
       }
 
@@ -975,8 +986,7 @@
           option.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            const color = this.getAttribute('data-color');
-            changeColor(color);
+            changeColorAndModel(this);
           });
         });
       });
