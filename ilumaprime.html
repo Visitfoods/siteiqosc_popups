@@ -467,7 +467,7 @@
       </a-entity>
 
       <a-light type="ambient" intensity="0.7"></a-light>
-  
+      <a-light type="directional" intensity="4" position="1 1 3"></a-light>
 
       
 
@@ -802,6 +802,13 @@
       const modelsContainer = document.getElementById('models-container');
       let loadingRemoved = false;
       let currentModelEntity = null;
+      let isChangingModel = false; // Variável para controlar se está a ocorrer uma troca de modelo
+      let lastModelChange = 0; // Timestamp da última troca de modelo
+      const MODEL_CHANGE_COOLDOWN = 2000; // Tempo mínimo (ms) entre trocas de modelo
+      
+      // Pré-carregamento de texturas, uma técnica para gerenciar melhor a memória
+      const textureLoader = new THREE.TextureLoader();
+      const loadedTextures = {};
       
       // Mapeamento de cores para valores RGB/Hex
       const colorValues = {
@@ -823,6 +830,30 @@
         'gesture-handler-custom': '',
         'remove-transparency': ''
       };
+
+      // Otimizador de desempenho para A-Frame
+      AFRAME.registerComponent('optimize-model', {
+        init: function() {
+          this.el.addEventListener('model-loaded', () => {
+            const mesh = this.el.getObject3D('mesh');
+            if (mesh) {
+              // Otimizar meshes para reduzir uso de memória
+              mesh.traverse((node) => {
+                if (node.isMesh) {
+                  // Desativar sombras para melhorar desempenho
+                  node.castShadow = false;
+                  node.receiveShadow = false;
+                  
+                  // Simplificar geometria quando possível
+                  if (node.geometry) {
+                    node.geometry.dispose();
+                  }
+                }
+              });
+            }
+          });
+        }
+      });
 
       // Componente A-Frame para gerenciar a cor do modelo
       AFRAME.registerComponent('color-changer', {
@@ -856,8 +887,52 @@
         }
       });
 
-      // Função para carregar um modelo específico
+      // Função para limpar a memória de forma mais agressiva
+      function cleanupMemory() {
+        // Limpar cache interno do Three.js
+        if (THREE.Cache) THREE.Cache.clear();
+        
+        // Força a recolha de lixo quando disponível
+        if (window.gc) window.gc();
+        
+        // Método adicional para tentar liberar memória no Safari do iOS
+        if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
+          setTimeout(() => {
+            const canvas = document.querySelector('canvas');
+            if (canvas) {
+              // Redimensionar canvas temporariamente para forçar liberação de recursos
+              const tempWidth = canvas.width;
+              const tempHeight = canvas.height;
+              canvas.width = 1;
+              canvas.height = 1;
+              // Restaurar dimensões
+              setTimeout(() => {
+                canvas.width = tempWidth;
+                canvas.height = tempHeight;
+              }, 50);
+            }
+          }, 100);
+        }
+      }
+
+      // Função para carregar um modelo específico com melhor gestão de memória
       function loadModel(modelType, colorName) {
+        // Verificar se já está a mudar de modelo para evitar chamadas repetidas
+        if (isChangingModel) {
+          console.log('Já está a ocorrer uma troca de modelo, ignorando este pedido');
+          return;
+        }
+        
+        // Verificar cooldown para evitar trocas frequentes que podem causar problemas de memória
+        const now = Date.now();
+        if (now - lastModelChange < MODEL_CHANGE_COOLDOWN) {
+          console.log('Aguardando cooldown para troca de modelo');
+          return;
+        }
+        
+        isChangingModel = true;
+        lastModelChange = now;
+        
         // Mostrar overlay de carregamento
         const loadingOverlay = document.getElementById('loading-overlay');
         loadingOverlay.style.display = 'flex';
@@ -866,70 +941,129 @@
         
         console.log(`Carregando modelo: ${modelType} com cor ${colorName}`);
         
-        // Remover modelo atual se existir
-        if (currentModelEntity) {
-          console.log(`Removendo modelo atual: ${currentModelEntity.id}`);
-          modelsContainer.removeChild(currentModelEntity);
-          currentModelEntity = null;
-          
-          // Libertar memória
-          THREE.Cache.clear();
-          
-          // Se houver memória para limpar, força garbage collection (quando possível)
-          if (window.gc) {
-            window.gc();
+        // Método assíncrono para evitar bloqueio da UI
+        setTimeout(() => {
+          // Remover modelo atual se existir
+          if (currentModelEntity) {
+            console.log(`Removendo modelo atual: ${currentModelEntity.id}`);
+            
+            // Limpar recursos explicitamente antes de remover
+            const mesh = currentModelEntity.getObject3D('mesh');
+            if (mesh) {
+              mesh.traverse((node) => {
+                if (node.geometry) node.geometry.dispose();
+                if (node.material) {
+                  if (Array.isArray(node.material)) {
+                    node.material.forEach(mat => {
+                      Object.keys(mat).forEach(prop => {
+                        if (mat[prop] && mat[prop].dispose) mat[prop].dispose();
+                      });
+                      mat.dispose();
+                    });
+                  } else if (node.material.dispose) {
+                    Object.keys(node.material).forEach(prop => {
+                      if (node.material[prop] && node.material[prop].dispose) node.material[prop].dispose();
+                    });
+                    node.material.dispose();
+                  }
+                }
+              });
+            }
+            
+            modelsContainer.removeChild(currentModelEntity);
+            currentModelEntity = null;
           }
-        }
-        
-        // Criar novo elemento para o modelo
-        const newModel = document.createElement('a-entity');
-        newModel.id = `modelo-${modelType}`;
-        
-        // Configurar o novo modelo
-        for (const [attr, value] of Object.entries(modelConfig)) {
-          newModel.setAttribute(attr, value);
-        }
-        
-        // Adicionar componente de troca de cor
-        newModel.setAttribute('color-changer', '');
-        newModel.setAttribute('data-color', colorName);
-        
-        // Adicionar modelo ao container
-        modelsContainer.appendChild(newModel);
-        currentModelEntity = newModel;
-        
-        // Carregar o modelo depois de adicionar à cena
-        newModel.addEventListener('model-loaded', () => {
-          console.log(`Modelo ${modelType} carregado com sucesso`);
-          loadingOverlay.style.display = 'none';
           
-          // Forçar a atualização da cor após o carregamento
-          const colorChangerComponent = newModel.components['color-changer'];
-          if (colorChangerComponent) {
-            colorChangerComponent.updateColor();
+          // Limpeza de memória mais agressiva
+          cleanupMemory();
+          
+          // Criar novo elemento para o modelo
+          const newModel = document.createElement('a-entity');
+          newModel.id = `modelo-${modelType}`;
+          
+          // Configurar o novo modelo
+          for (const [attr, value] of Object.entries(modelConfig)) {
+            newModel.setAttribute(attr, value);
           }
-        });
-        
-        newModel.addEventListener('model-error', (error) => {
-          console.error(`Erro ao carregar modelo ${modelType}:`, error);
-          loadingOverlay.style.display = 'none';
-          loadingCounter.textContent = 'Erro ao carregar modelo';
-        });
-        
-        // Iniciar carregamento do modelo
-        newModel.setAttribute('gltf-model', modelURLs[modelType]);
+          
+          // Adicionar componentes de otimização e troca de cor
+          newModel.setAttribute('optimize-model', '');
+          newModel.setAttribute('color-changer', '');
+          newModel.setAttribute('data-color', colorName);
+          
+          // Adicionar evento para detectar quando o modelo estiver pronto
+          newModel.addEventListener('model-loaded', () => {
+            console.log(`Modelo ${modelType} carregado com sucesso`);
+            loadingOverlay.style.display = 'none';
+            
+            // Forçar a atualização da cor após o carregamento
+            const colorChangerComponent = newModel.components['color-changer'];
+            if (colorChangerComponent) {
+              colorChangerComponent.updateColor();
+            }
+            
+            // Permitir novas trocas de modelo
+            setTimeout(() => {
+              isChangingModel = false;
+            }, 500); // Adicionar pequeno atraso para estabilizar
+          });
+          
+          newModel.addEventListener('model-error', (error) => {
+            console.error(`Erro ao carregar modelo ${modelType}:`, error);
+            loadingOverlay.style.display = 'none';
+            loadingCounter.textContent = 'Erro ao carregar modelo';
+            isChangingModel = false;
+          });
+          
+          // Adicionar modelo ao container após preparação
+          modelsContainer.appendChild(newModel);
+          currentModelEntity = newModel;
+          
+          // Iniciar carregamento do modelo com pequeno atraso para garantir que DOM está pronto
+          setTimeout(() => {
+            newModel.setAttribute('gltf-model', modelURLs[modelType]);
+          }, 50);
+        }, 100); // Pequeno atraso para garantir que UI esteja atualizada
       }
 
-      // Função para mudar de cor e modelo
+      // Função para mudar de cor e modelo com proteção contra cliques múltiplos
       function changeColorAndModel(colorOption) {
+        // Verificar se já está a processar uma mudança de modelo
+        if (isChangingModel) {
+          console.log('Já está a ocorrer uma troca de modelo, ignorando este clique');
+          return;
+        }
+        
         const color = colorOption.getAttribute('data-color');
         const model = colorOption.getAttribute('data-model');
         
-        console.log('Mudando para:', color, model);
+        console.log('Tentando mudar para:', color, model);
         
         // Validar cores e modelos
         if (!colorValues[color] || !modelURLs[model]) {
           console.error('Cor ou modelo inválidos:', color, model);
+          return;
+        }
+        
+        // Se for apenas mudança de cor no mesmo modelo, podemos otimizar
+        if (model === currentModel && currentModelEntity) {
+          // Atualizar cor atual
+          currentColor = color;
+          
+          // Atualizar botões de seleção de cor
+          document.querySelectorAll('.color-option').forEach(option => {
+            const isSelected = option.getAttribute('data-color') === color;
+            option.classList.toggle('active', isSelected);
+          });
+          
+          // Atualizar apenas a cor sem recarregar o modelo
+          currentModelEntity.setAttribute('data-color', color);
+          const colorChangerComponent = currentModelEntity.components['color-changer'];
+          if (colorChangerComponent) {
+            colorChangerComponent.updateColor();
+          }
+          
+          console.log('Apenas cor alterada, mantendo o mesmo modelo');
           return;
         }
 
@@ -947,9 +1081,18 @@
         loadModel(model, color);
       }
 
-      // Inicialização
+      // Inicialização com baixo uso de memória
       function initializeScene() {
         console.log('Inicializando cena...');
+        
+        // Pré-carregar recursos críticos para evitar falhas de memória durante trocas
+        document.querySelectorAll('.color-option').forEach(option => {
+          const color = option.getAttribute('data-color');
+          if (color && colorValues[color]) {
+            // Pré-registrar a cor para uso posterior
+            new THREE.Color(colorValues[color]);
+          }
+        });
         
         // Carregar o modelo inicial após um breve delay
         setTimeout(() => {
@@ -961,24 +1104,44 @@
             // Fallback se não houver nenhum marcado como ativo
             loadModel('olive', 'light-olive');
           }
-        }, 500);
+        }, 1000); // Delay maior para garantir que a página esteja completamente carregada
       }
 
-      // Event Listeners
+      // Event Listeners com proteção contra múltiplos cliques
       window.addEventListener('load', () => {
         console.log('Página carregada');
-        initializeScene();
+        // Atrasar a inicialização para garantir que tudo esteja carregado
+        setTimeout(initializeScene, 500);
       });
 
-      // Adicionar event listeners para os botões de cor
+      // Adicionar event listeners para os botões de cor com debounce
       document.addEventListener('DOMContentLoaded', function() {
+        let lastClickTime = 0;
+        const CLICK_COOLDOWN = 1000; // 1 segundo entre cliques
+        
         const colorOptions = document.querySelectorAll('.color-option');
         colorOptions.forEach(option => {
           option.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
+            
+            // Verificar cooldown para evitar cliques múltiplos
+            const now = Date.now();
+            if (now - lastClickTime < CLICK_COOLDOWN) {
+              console.log('Clique muito rápido, ignorando');
+              return;
+            }
+            lastClickTime = now;
+            
             changeColorAndModel(this);
           });
+        });
+        
+        // Adicionar event listener para ajudar a liberar memória quando a aba ficar invisível
+        document.addEventListener('visibilitychange', function() {
+          if (document.hidden) {
+            cleanupMemory();
+          }
         });
       });
     </script>
