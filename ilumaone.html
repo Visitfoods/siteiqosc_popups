@@ -808,7 +808,7 @@
       
       // Mapeamento de cores para valores RGB/Hex
       const colorValues = {
-       'turquoise': '#95c5c6',
+        'turquoise': '#95c5c6',
         'navy': '#0d0d0d',
         'olive': '#c7d494',
         'rooibos': '#f21313',
@@ -838,7 +838,7 @@
           const mesh = this.el.getObject3D('mesh');
           if (!mesh) return;
           
-          // Aplicar a cor ao material do modelo com prevalência total
+          // Aplicar a cor ao material do modelo
           mesh.traverse((node) => {
             if (node.isMesh && node.material) {
               const materials = Array.isArray(node.material) ? node.material : [node.material];
@@ -846,38 +846,14 @@
               materials.forEach((material) => {
                 // Verificar se o material tem cor (pode ser um material especular ou outro tipo)
                 if (material.color) {
-                  // Aplicar a cor com intensidade total
                   material.color.set(colorValues[color]);
-                  
-                  // Aumentar a saturação e intensidade da cor
-                  if (material.emissive) {
-                    // Definir emissão para reforçar a cor
-                    material.emissive.set(colorValues[color]);
-                    material.emissiveIntensity = 0.2; // Emissão sutil para não perder detalhes
-                  }
-                  
-                  // Aumentar o peso da cor base em relação às texturas
-                  if (material.map) {
-                    material.map.encoding = THREE.sRGBEncoding;
-                    material.map.anisotropy = 16; // Melhor qualidade visual
-                  }
-                  
-                  // Ajustar propriedades ópticas para destacar a cor
-                  if (typeof material.metalness !== 'undefined') {
-                    material.metalness = 0.3; // Reduzir metalicidade para cores mais saturadas
-                  }
-                  if (typeof material.roughness !== 'undefined') {
-                    material.roughness = 0.4; // Ajustar rugosidade para melhor percepção da cor
-                  }
-                  
-                  // Forçar atualização do material
                   material.needsUpdate = true;
                 }
               });
             }
           });
           
-          console.log(`Cor do modelo alterada para: ${color} (${colorValues[color]}) com prevalência total`);
+          console.log(`Cor do modelo alterada para: ${color} (${colorValues[color]})`);
         }
       });
 
@@ -926,15 +902,6 @@
         // Carregar o modelo depois de adicionar à cena
         newModel.addEventListener('model-loaded', () => {
           console.log('Modelo base carregado com sucesso');
-          
-          // Garantir que a cor seja aplicada imediatamente após o carregamento
-          setTimeout(() => {
-            const colorChangerComponent = newModel.components['color-changer'];
-            if (colorChangerComponent) {
-              colorChangerComponent.updateColor();
-            }
-          }, 100);
-          
           loadingOverlay.style.display = 'none';
         });
         
