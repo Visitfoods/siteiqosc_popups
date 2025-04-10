@@ -869,6 +869,175 @@
         }
       });
 
+      // Função para pré-carregar todos os modelos
+      function preloadAllModels() {
+        console.log('Pré-carregando modelos...');
+        
+        // Mostrar overlay de carregamento durante pré-carregamento
+        const loadingOverlay = document.getElementById('loading-overlay');
+        loadingOverlay.style.display = 'flex';
+        const loadingCounter = document.getElementById('loading-counter');
+        loadingCounter.textContent = 'A preparar modelos...';
+        
+        // Carregar o modelo base (para todas as cores exceto olive)
+        const baseModel = document.createElement('a-entity');
+        baseModel.id = 'modelo-base-preload';
+        baseModel.setAttribute('visible', false);
+        
+        // Configurar o modelo
+        for (const [attr, value] of Object.entries(modelConfig)) {
+          baseModel.setAttribute(attr, value);
+        }
+        
+        baseModel.setAttribute('color-changer', '');
+        baseModel.setAttribute('data-color', 'turquoise');
+        
+        // Carregar o modelo base
+        baseModel.addEventListener('model-loaded', () => {
+          console.log('Modelo base pré-carregado com sucesso');
+          
+          // Criar cópias para cada cor (exceto olive)
+          const validColors = ['turquoise', 'navy', 'jacaranda', 'rooibos'];
+          validColors.forEach(color => {
+            if (color === 'olive') return; // Olive tem seu próprio modelo
+            
+            console.log(`Criando cópia em cache para cor ${color}`);
+            const colorModel = baseModel.cloneNode(true);
+            colorModel.id = `modelo-${color}`;
+            colorModel.setAttribute('data-color', color);
+            
+            // Configurar o comportamento de troca de cor para o modelo clonado
+            const eventProcessed = {} 
+            colorModel.addEventListener('model-loaded', () => {
+              // Evitar processamento duplicado
+              if (eventProcessed[color]) return;
+              eventProcessed[color] = true;
+              
+              console.log(`Aplicando cor ${color} ao modelo clonado`);
+              const colorChangerComponent = colorModel.components['color-changer'];
+              if (colorChangerComponent) {
+                colorChangerComponent.updateColor();
+              }
+            });
+            
+            // Adicionar ao cache
+            modelCache[color] = colorModel;
+          });
+          
+          // Depois carregamos o modelo olive
+          const oliveModel = document.createElement('a-entity');
+          oliveModel.id = 'modelo-olive';
+          oliveModel.setAttribute('visible', false);
+          
+          // Configurar o modelo
+          for (const [attr, value] of Object.entries(modelConfig)) {
+            oliveModel.setAttribute(attr, value);
+          }
+          
+          // Carregar o modelo olive
+          oliveModel.addEventListener('model-loaded', () => {
+            console.log('Modelo olive pré-carregado com sucesso');
+            modelCache['olive'] = oliveModel;
+            
+            // Após pré-carregar todos, mostrar o modelo atual
+            console.log('Todos os modelos foram pré-carregados com sucesso');
+            initializeScene();
+            
+            // Esconder overlay
+            loadingOverlay.style.display = 'none';
+          });
+          
+          oliveModel.setAttribute('gltf-model', oliveModelURL);
+          modelsContainer.appendChild(oliveModel);
+        });
+        
+        // Iniciar carregamento do modelo base
+        baseModel.setAttribute('gltf-model', baseModelURL);
+        modelsContainer.appendChild(baseModel);
+      }
+
+      // Função para mudar de cor
+      function changeColor(color) {
+        // Verificar se já está a processar uma mudança de modelo
+        if (isChangingModel) {
+          console.log('Já está a ocorrer uma troca de modelo, ignorando este clique');
+          return;
+        }
+        
+        // Verificar cooldown para evitar trocas frequentes que podem causar problemas
+        const now = Date.now();
+        if (now - lastModelChange < MODEL_CHANGE_COOLDOWN) {
+          console.log('Aguardando cooldown para troca de modelo');
+          return;
+        }
+        
+        isChangingModel = true;
+        lastModelChange = now;
+        
+        console.log('Mudando cor para:', color);
+        
+        const validColors = ['turquoise', 'navy', 'olive', 'jacaranda', 'rooibos'];
+        if (!validColors.includes(color)) {
+          console.error('Cor inválida:', color);
+          isChangingModel = false;
+          return;
+        }
+
+        // Atualizar cor atual
+        currentColor = color;
+        
+        // Atualizar botões de seleção de cor
+        document.querySelectorAll('.color-option').forEach(option => {
+          const isSelected = option.getAttribute('data-color') === color;
+          option.classList.toggle('active', isSelected);
+          console.log(`Botão ${option.getAttribute('data-color')}: ${isSelected ? 'ativo' : 'inativo'}`);
+        });
+        
+        // Se o modelo já estiver em cache para esta cor, usá-lo
+        if (modelCache[color]) {
+          console.log(`Usando modelo em cache para cor ${color}`);
+          
+          // Esconder o modelo atual
+          if (currentModel) {
+            currentModel.setAttribute('visible', false);
+          }
+          
+          // Mostrar o modelo da cor selecionada
+          const model = modelCache[color];
+          model.setAttribute('visible', true);
+          
+          // Se não for olive, aplicar a cor novamente
+          if (color !== 'olive') {
+            model.setAttribute('data-color', color);
+            try {
+              const colorChangerComponent = model.components['color-changer'];
+              if (colorChangerComponent) {
+                colorChangerComponent.updateColor();
+              }
+            } catch (e) {
+              console.error(`Erro ao atualizar cor do modelo ${color}:`, e);
+            }
+          }
+          
+          // Atualizar referência ao modelo atual
+          currentModel = model;
+          
+          // Terminar o processamento
+          isChangingModel = false;
+        } else {
+          // Se o modelo não estiver em cache, carregá-lo
+          console.log(`Modelo ${color} não está em cache, carregando...`);
+          
+          // Guardar a cor selecionada para usar após o carregamento
+          currentColor = color;
+          
+          // Carregar o modelo
+          loadBaseModel();
+          
+          // loadBaseModel se encarregará de definir isChangingModel como false quando terminar
+        }
+      }
+
       // Função para carregar o modelo base
       function loadBaseModel() {
         // Mostrar overlay de carregamento
@@ -877,7 +1046,7 @@
         const loadingCounter = document.getElementById('loading-counter');
         loadingCounter.textContent = 'Carregando modelo...';
         
-        console.log('Carregando modelo base');
+        console.log(`Carregando modelo para cor ${currentColor}`);
         
         // Verificar se o modelo já está em cache
         if (modelCache[currentColor]) {
@@ -897,15 +1066,20 @@
             cachedModel.setAttribute('data-color', currentColor);
             
             // Atualizar a cor
-            const colorChangerComponent = cachedModel.components['color-changer'];
-            if (colorChangerComponent) {
-              colorChangerComponent.updateColor();
+            try {
+              const colorChangerComponent = cachedModel.components['color-changer'];
+              if (colorChangerComponent) {
+                colorChangerComponent.updateColor();
+              }
+            } catch (e) {
+              console.error(`Erro ao atualizar cor do modelo ${currentColor}:`, e);
             }
           }
           
           // Atualizar referência ao modelo atual
           currentModel = cachedModel;
           loadingOverlay.style.display = 'none';
+          isChangingModel = false;
           return;
         }
         
@@ -958,12 +1132,14 @@
           // Guardar no cache
           modelCache[currentColor] = newModel;
           loadingOverlay.style.display = 'none';
+          isChangingModel = false;
         });
         
         newModel.addEventListener('model-error', (error) => {
           console.error(`Erro ao carregar modelo ${currentColor}:`, error);
           loadingOverlay.style.display = 'none';
           loadingCounter.textContent = 'Erro ao carregar modelo';
+          isChangingModel = false;
         });
         
         // Determinar qual modelo carregar
@@ -972,103 +1148,6 @@
         
         // Iniciar carregamento do modelo
         newModel.setAttribute('gltf-model', modelURL);
-      }
-
-      // Função para mudar de cor
-      function changeColor(color) {
-        console.log('Mudando cor para:', color);
-        
-        const validColors = ['turquoise', 'navy', 'olive', 'jacaranda', 'rooibos'];
-        if (!validColors.includes(color)) {
-          console.error('Cor inválida:', color);
-          return;
-        }
-
-        // Atualizar cor atual
-        currentColor = color;
-        
-        // Atualizar botões de seleção de cor
-        document.querySelectorAll('.color-option').forEach(option => {
-          const isSelected = option.getAttribute('data-color') === color;
-          option.classList.toggle('active', isSelected);
-          console.log(`Botão ${option.getAttribute('data-color')}: ${isSelected ? 'ativo' : 'inativo'}`);
-        });
-        
-        // Se o modelo já estiver em cache para esta cor, usá-lo
-        if (modelCache[color]) {
-          console.log(`Usando modelo em cache para cor ${color}`);
-          
-          // Esconder o modelo atual
-          if (currentModel) {
-            currentModel.setAttribute('visible', false);
-          }
-          
-          // Mostrar o modelo da cor selecionada
-          const model = modelCache[color];
-          model.setAttribute('visible', true);
-          currentModel = model;
-        } else if (color === 'olive' || currentModel?.getAttribute('data-color') !== color) {
-          // Se for olive ou se a cor atual do modelo for diferente, carregamos um novo modelo
-          loadBaseModel();
-        } else {
-          // Se o modelo já estiver carregado, apenas alterar a cor
-          currentModel.setAttribute('data-color', color);
-          
-          // Forçar a atualização da cor
-          const colorChangerComponent = currentModel.components['color-changer'];
-          if (colorChangerComponent) {
-            colorChangerComponent.updateColor();
-          }
-        }
-      }
-
-      // Função para pré-carregar todos os modelos
-      function preloadAllModels() {
-        console.log('Pré-carregando modelos...');
-        
-        // Primeiro, carregamos o modelo base (turquoise)
-        const turquoiseModel = document.createElement('a-entity');
-        turquoiseModel.id = 'modelo-turquoise-preload';
-        turquoiseModel.setAttribute('visible', false);
-        
-        // Configurar o modelo
-        for (const [attr, value] of Object.entries(modelConfig)) {
-          turquoiseModel.setAttribute(attr, value);
-        }
-        
-        turquoiseModel.setAttribute('color-changer', '');
-        turquoiseModel.setAttribute('data-color', 'turquoise');
-        
-        // Carregar o modelo base
-        turquoiseModel.addEventListener('model-loaded', () => {
-          console.log('Modelo turquoise pré-carregado com sucesso');
-          modelCache['turquoise'] = turquoiseModel;
-          
-          // Depois carregamos o modelo olive
-          const oliveModel = document.createElement('a-entity');
-          oliveModel.id = 'modelo-olive-preload';
-          oliveModel.setAttribute('visible', false);
-          
-          // Configurar o modelo
-          for (const [attr, value] of Object.entries(modelConfig)) {
-            oliveModel.setAttribute(attr, value);
-          }
-          
-          // Carregar o modelo olive
-          oliveModel.addEventListener('model-loaded', () => {
-            console.log('Modelo olive pré-carregado com sucesso');
-            modelCache['olive'] = oliveModel;
-            
-            // Após pré-carregar, mostrar o modelo atual
-            initializeScene();
-          });
-          
-          oliveModel.setAttribute('gltf-model', oliveModelURL);
-          modelsContainer.appendChild(oliveModel);
-        });
-        
-        turquoiseModel.setAttribute('gltf-model', baseModelURL);
-        modelsContainer.appendChild(turquoiseModel);
       }
 
       // Inicialização
