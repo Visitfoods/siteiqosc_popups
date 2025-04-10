@@ -468,8 +468,14 @@
         </a-camera>
       </a-entity>
 
-      <a-light type="ambient" intensity="0.7"></a-light>
-      <a-light type="directional" intensity="4" position="1 1 3"></a-light>
+    <!-- Configuração de iluminação de estúdio aprimorada -->
+    <a-entity light="type: ambient; color: #FFF; intensity: 10.5"></a-entity>
+    <a-entity light="type: directional; color: #FFF; intensity: 5.4; castShadow: true" position="2 2 2"></a-entity>
+    <a-entity light="type: directional; color: #FFF; intensity: 2.2" position="-2 2 -2"></a-entity>
+    <a-entity light="type: directional; color: #FFF; intensity: 4.0" position="0 -1 0"></a-entity>
+    <!-- Luzes adicionais para áreas texturizadas -->
+    <a-entity light="type: spot; color: #FFF; intensity: 1.2; angle: 45" position="0 3 0" rotation="-90 0 0"></a-entity>
+    <a-entity light="type: point; color: #FFF; intensity: 0.8; distance: 5" position="1 1 1"></a-entity>
 
       
 
@@ -852,8 +858,8 @@
       
       // Mapeamento de cores para valores RGB/Hex
       const colorValues = {
-        'light-olive': '#7EC4BC',
-        'dark-olive': '#0f2e27',
+        'light-olive': '#95c5c6',
+        'dark-olive': '406c4d',
         'light-navy': '#131d2b',
         'dark-navy': '#2d1e27'
       };
