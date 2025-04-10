@@ -226,8 +226,8 @@
       }
 
       .color-option:nth-child(1) { transform: rotate(0deg) translateY(0px); }
-      .color-option:nth-child(2) { transform: rotate(3deg) translateY(12px); }
-      .color-option:nth-child(3) { transform: translateY(12px); }
+      .color-option:nth-child(2) { transform: rotate(3deg) translateY(20px); }
+      .color-option:nth-child(3) { transform: translateY(22px); }
       .color-option:nth-child(4) { transform: rotate(0deg) translateY(2px); }
 
       .color-option:hover {
@@ -811,65 +811,30 @@
       let loadingRemoved = false;
       let currentModel = null;
       
-      // Mapeamento de cores para valores RGB/Hex
-      const colorValues = {
-        'turquoise': '#7EC4BC',
-        'navy': '#131d2b',
-        'olive': '#0f2e27',
-        'jacaranda': '#2d1e27'
+      // Mapeamento dos modelos e seus URLs
+      const modelURLs = {
+        'turquoise': 'modelo3d/modelo3_prime/pastel-turquoise.glb',
+        'navy': 'modelo3d/modelo3_prime/navy-blazer.glb',
+        'olive': 'modelo3d/modelo3_prime/olive-green.glb',
+        'jacaranda': 'modelo3d/modelo3_prime/jacaranda.glb'
       };
-      
-      // Caminho para o modelo base (usamos apenas um modelo)
-      const baseModelURL = 'modelo3d/modelo3_prime/pastel-turquoise.glb';
 
-      // Configurações padrão para o modelo
+      // Configurações padrão para todos os modelos
       const modelConfig = {
         scale: '19 19 19',
         'gesture-handler-custom': '',
         'remove-transparency': ''
       };
 
-      // Componente A-Frame para gerenciar a cor do modelo
-      AFRAME.registerComponent('color-changer', {
-        init: function() {
-          this.el.addEventListener('model-loaded', this.updateColor.bind(this));
-        },
-        
-        updateColor: function() {
-          const color = this.el.getAttribute('data-color');
-          if (!color || !colorValues[color]) return;
-          
-          const mesh = this.el.getObject3D('mesh');
-          if (!mesh) return;
-          
-          // Aplicar a cor ao material do modelo
-          mesh.traverse((node) => {
-            if (node.isMesh && node.material) {
-              const materials = Array.isArray(node.material) ? node.material : [node.material];
-              
-              materials.forEach((material) => {
-                // Verificar se o material tem cor (pode ser um material especular ou outro tipo)
-                if (material.color) {
-                  material.color.set(colorValues[color]);
-                  material.needsUpdate = true;
-                }
-              });
-            }
-          });
-          
-          console.log(`Cor do modelo alterada para: ${color} (${colorValues[color]})`);
-        }
-      });
-
-      // Função para carregar o modelo base
-      function loadBaseModel() {
+      // Função para carregar um modelo específico
+      function loadModel(color) {
         // Mostrar overlay de carregamento
-        const loadingOverlay = document.getElementById('loading-overlay');
+          const loadingOverlay = document.getElementById('loading-overlay');
         loadingOverlay.style.display = 'flex';
         const loadingCounter = document.getElementById('loading-counter');
         loadingCounter.textContent = 'Carregando modelo...';
         
-        console.log('Carregando modelo base');
+        console.log(`Carregando modelo: ${color}`);
         
         // Remover modelo atual se existir
         if (currentModel) {
@@ -888,16 +853,12 @@
         
         // Criar novo elemento para o modelo
         const newModel = document.createElement('a-entity');
-        newModel.id = 'modelo-base';
+        newModel.id = `modelo-${color}`;
         
         // Configurar o novo modelo
         for (const [attr, value] of Object.entries(modelConfig)) {
           newModel.setAttribute(attr, value);
         }
-        
-        // Adicionar componente de troca de cor
-        newModel.setAttribute('color-changer', '');
-        newModel.setAttribute('data-color', currentColor);
         
         // Adicionar modelo ao container
         modelsContainer.appendChild(newModel);
@@ -905,18 +866,18 @@
         
         // Carregar o modelo depois de adicionar à cena
         newModel.addEventListener('model-loaded', () => {
-          console.log('Modelo base carregado com sucesso');
+          console.log(`Modelo ${color} carregado com sucesso`);
           loadingOverlay.style.display = 'none';
         });
         
         newModel.addEventListener('model-error', (error) => {
-          console.error('Erro ao carregar modelo base:', error);
+          console.error(`Erro ao carregar modelo ${color}:`, error);
           loadingOverlay.style.display = 'none';
           loadingCounter.textContent = 'Erro ao carregar modelo';
         });
         
         // Iniciar carregamento do modelo
-        newModel.setAttribute('gltf-model', baseModelURL);
+        newModel.setAttribute('gltf-model', modelURLs[color]);
       }
 
       // Função para mudar de cor
@@ -926,8 +887,8 @@
         const validColors = ['turquoise', 'navy', 'olive', 'jacaranda'];
         if (!validColors.includes(color)) {
           console.error('Cor inválida:', color);
-          return;
-        }
+            return;
+          }
 
         // Atualizar cor atual
         currentColor = color;
@@ -939,19 +900,8 @@
           console.log(`Botão ${option.getAttribute('data-color')}: ${isSelected ? 'ativo' : 'inativo'}`);
         });
         
-        // Se o modelo já estiver carregado, apenas alterar a cor
-        if (currentModel) {
-          currentModel.setAttribute('data-color', color);
-          
-          // Forçar a atualização da cor
-          const colorChangerComponent = currentModel.components['color-changer'];
-          if (colorChangerComponent) {
-            colorChangerComponent.updateColor();
-          }
-        } else {
-          // Se não houver modelo carregado, carregamos o modelo base
-          loadBaseModel();
-        }
+        // Carregar o modelo correspondente
+        loadModel(color);
       }
 
       // Inicialização
@@ -959,8 +909,8 @@
         console.log('Inicializando cena...');
         
         // Carregar o modelo inicial após um breve delay
-        setTimeout(() => {
-          loadBaseModel();
+          setTimeout(() => {
+          changeColor('turquoise');
         }, 500);
       }
 
