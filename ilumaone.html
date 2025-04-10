@@ -808,11 +808,11 @@
       
       // Mapeamento de cores para valores RGB/Hex
       const colorValues = {
-        'turquoise': '#95c5c6',
-        'navy': '#0d0d0d',
-        'olive': '#c7d494',
-        'rooibos': '#f21313',
-        'jacaranda': '#5e43e7'
+        'turquoise': '#7ef0f1',
+        'navy': '#000000',
+        'olive': '#a6ff00',
+        'rooibos': '#ff0000',
+        'jacaranda': '#5522ff'
       };
       
       // Caminho para o modelo base (usamos apenas um modelo)
@@ -844,32 +844,31 @@
               const materials = Array.isArray(node.material) ? node.material : [node.material];
               
               materials.forEach((material) => {
-                // Aplicar a cor de forma mais agressiva, sobrescrevendo completamente
+                // Substituição completa da cor - Aplicar a cor escolhida com máxima intensidade
                 if (material.color) {
-                  // Definir a cor base
+                  // Definir a cor diretamente sem mistura
                   material.color.set(colorValues[color]);
                   
-                  // Garantir que o material use a cor completamente
-                  material.metalness = 0.2;
-                  material.roughness = 0.8;
+                  // Aumentar a intensidade da cor para máximo
+                  if (material.emissive) {
+                    material.emissive.set(0, 0, 0);
+                  }
                   
-                  // Desativar mapas que podem afetar a cor
-                  if (material.map) material.map.encoding = THREE.sRGBEncoding;
-                  material.emissive = new THREE.Color(0x000000);
+                  // Remover qualquer mapa de texturas que possa interferir com a cor
+                  material.map = null;
                   
-                  // Forçar atualização do material
+                  // Ajustar propriedades do material para garantir a cor pura
+                  material.roughness = 0.5;
+                  material.metalness = 0.1;
+                  
+                  // Garantir que as alterações sejam aplicadas
                   material.needsUpdate = true;
-                }
-                
-                // Se for um material MeshStandardMaterial, podemos ajustar mais propriedades
-                if (material.type === 'MeshStandardMaterial') {
-                  material.emissiveIntensity = 0;
                 }
               });
             }
           });
           
-          console.log(`Cor do modelo alterada para: ${color} (${colorValues[color]})`);
+          console.log(`Cor do modelo alterada para: ${color} (${colorValues[color]}) com prevalência total`);
         }
       });
 
@@ -911,15 +910,6 @@
         newModel.setAttribute('color-changer', '');
         newModel.setAttribute('data-color', currentColor);
         
-        // Configurar para garantir prevalência da cor
-        newModel.setAttribute('material', {
-          shader: 'standard',
-          transparent: false,
-          opacity: 1.0,
-          metalness: 0.2,
-          roughness: 0.8
-        });
-        
         // Adicionar modelo ao container
         modelsContainer.appendChild(newModel);
         currentModel = newModel;
@@ -928,14 +918,6 @@
         newModel.addEventListener('model-loaded', () => {
           console.log('Modelo base carregado com sucesso');
           loadingOverlay.style.display = 'none';
-          
-          // Aplicar a cor imediatamente após o carregamento
-          setTimeout(() => {
-            const colorChangerComponent = newModel.components['color-changer'];
-            if (colorChangerComponent) {
-              colorChangerComponent.updateColor();
-            }
-          }, 100);
         });
         
         newModel.addEventListener('model-error', (error) => {
@@ -968,37 +950,20 @@
           console.log(`Botão ${option.getAttribute('data-color')}: ${isSelected ? 'ativo' : 'inativo'}`);
         });
         
-        // Se o modelo já estiver carregado, aplicar a cor imediatamente
+        // Se o modelo já estiver carregado, apenas alterar a cor
         if (currentModel) {
           currentModel.setAttribute('data-color', color);
           
-          // Forçar a atualização da cor de forma mais agressiva
+          // Forçar a atualização da cor com garantia de aplicação total
           const colorChangerComponent = currentModel.components['color-changer'];
           if (colorChangerComponent) {
-            // Aplicar cor várias vezes para garantir prevalência
+            // Aplicar a nova cor
             colorChangerComponent.updateColor();
             
-            // Aplicar novamente após um pequeno delay para garantir
+            // Forçar uma segunda passagem para garantir que todos os materiais foram atualizados
             setTimeout(() => {
               colorChangerComponent.updateColor();
             }, 100);
-          }
-          
-          // Técnica alternativa: aplicar um shader custom se necessário
-          const mesh = currentModel.getObject3D('mesh');
-          if (mesh) {
-            mesh.traverse((node) => {
-              if (node.isMesh && node.material) {
-                const materials = Array.isArray(node.material) ? node.material : [node.material];
-                materials.forEach(material => {
-                  // Garantir que a cor seja aplicada efetivamente
-                  if (material.color) {
-                    material.color.set(colorValues[color]);
-                    material.needsUpdate = true;
-                  }
-                });
-              }
-            });
           }
         } else {
           // Se não houver modelo carregado, carregamos o modelo base
