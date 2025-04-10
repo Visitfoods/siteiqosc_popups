@@ -811,12 +811,20 @@
       let loadingRemoved = false;
       let currentModel = null;
       
-      // Mapeamento dos modelos e seus URLs
-      const modelURLs = {
-        'turquoise': 'modelo3d/modelo3_prime/pastel-turquoise.glb',
-        'navy': 'modelo3d/modelo3_prime/navy-blazer.glb',
-        'olive': 'modelo3d/modelo3_prime/olive-green.glb',
-        'jacaranda': 'modelo3d/modelo3_prime/jacaranda.glb'
+      // Mapeamento de cores para valores RGB/Hex
+      const colorValues = {
+        'turquoise': '#7EC4BC',
+        'navy': '#131d2b',
+        'olive': '#0f2e27',
+        'jacaranda': '#2d1e27'
+      };
+      
+      // Mapeamento de cores para modelos específicos
+      const colorToModel = {
+        'turquoise': 'olive-green.glb', // Cor #7EC4BC usa modelo olive-green.glb
+        'olive': 'olive-green.glb',     // Cor #0f2e27 usa modelo olive-green.glb
+        'navy': 'navy-blazer.glb',      // Cor #131d2b usa modelo navy-blazer.glb
+        'jacaranda': 'navy-blazer.glb'  // Cor #2d1e27 usa modelo navy-blazer.glb
       };
 
       // Configurações padrão para todos os modelos
@@ -826,15 +834,47 @@
         'remove-transparency': ''
       };
 
+      // Componente A-Frame para gerenciar a cor do modelo
+      AFRAME.registerComponent('color-changer', {
+        init: function() {
+          this.el.addEventListener('model-loaded', this.updateColor.bind(this));
+        },
+        
+        updateColor: function() {
+          const color = this.el.getAttribute('data-color');
+          if (!color || !colorValues[color]) return;
+          
+          const mesh = this.el.getObject3D('mesh');
+          if (!mesh) return;
+          
+          // Aplicar a cor ao material do modelo
+          mesh.traverse((node) => {
+            if (node.isMesh && node.material) {
+              const materials = Array.isArray(node.material) ? node.material : [node.material];
+              
+              materials.forEach((material) => {
+                // Verificar se o material tem cor (pode ser um material especular ou outro tipo)
+                if (material.color) {
+                  material.color.set(colorValues[color]);
+                  material.needsUpdate = true;
+                }
+              });
+            }
+          });
+          
+          console.log(`Cor do modelo alterada para: ${color} (${colorValues[color]})`);
+        }
+      });
+
       // Função para carregar um modelo específico
       function loadModel(color) {
         // Mostrar overlay de carregamento
-          const loadingOverlay = document.getElementById('loading-overlay');
+        const loadingOverlay = document.getElementById('loading-overlay');
         loadingOverlay.style.display = 'flex';
         const loadingCounter = document.getElementById('loading-counter');
         loadingCounter.textContent = 'Carregando modelo...';
         
-        console.log(`Carregando modelo: ${color}`);
+        console.log(`Carregando modelo para cor: ${color}`);
         
         // Remover modelo atual se existir
         if (currentModel) {
@@ -851,6 +891,10 @@
           }
         }
         
+        // Determinar qual modelo usar baseado na cor
+        const modelFile = colorToModel[color];
+        const modelURL = `modelo3d/modelo3_prime/${modelFile}`;
+        
         // Criar novo elemento para o modelo
         const newModel = document.createElement('a-entity');
         newModel.id = `modelo-${color}`;
@@ -860,24 +904,28 @@
           newModel.setAttribute(attr, value);
         }
         
+        // Adicionar componente de troca de cor
+        newModel.setAttribute('color-changer', '');
+        newModel.setAttribute('data-color', color);
+        
         // Adicionar modelo ao container
         modelsContainer.appendChild(newModel);
         currentModel = newModel;
         
         // Carregar o modelo depois de adicionar à cena
         newModel.addEventListener('model-loaded', () => {
-          console.log(`Modelo ${color} carregado com sucesso`);
+          console.log(`Modelo ${modelFile} para cor ${color} carregado com sucesso`);
           loadingOverlay.style.display = 'none';
         });
         
         newModel.addEventListener('model-error', (error) => {
-          console.error(`Erro ao carregar modelo ${color}:`, error);
+          console.error(`Erro ao carregar modelo ${modelFile} para cor ${color}:`, error);
           loadingOverlay.style.display = 'none';
           loadingCounter.textContent = 'Erro ao carregar modelo';
         });
         
         // Iniciar carregamento do modelo
-        newModel.setAttribute('gltf-model', modelURLs[color]);
+        newModel.setAttribute('gltf-model', modelURL);
       }
 
       // Função para mudar de cor
@@ -887,8 +935,8 @@
         const validColors = ['turquoise', 'navy', 'olive', 'jacaranda'];
         if (!validColors.includes(color)) {
           console.error('Cor inválida:', color);
-            return;
-          }
+          return;
+        }
 
         // Atualizar cor atual
         currentColor = color;
@@ -909,7 +957,7 @@
         console.log('Inicializando cena...');
         
         // Carregar o modelo inicial após um breve delay
-          setTimeout(() => {
+        setTimeout(() => {
           changeColor('turquoise');
         }, 500);
       }
