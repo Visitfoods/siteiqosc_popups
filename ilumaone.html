@@ -844,10 +844,26 @@
               const materials = Array.isArray(node.material) ? node.material : [node.material];
               
               materials.forEach((material) => {
-                // Verificar se o material tem cor (pode ser um material especular ou outro tipo)
+                // Aplicar a cor de forma mais agressiva, sobrescrevendo completamente
                 if (material.color) {
+                  // Definir a cor base
                   material.color.set(colorValues[color]);
+                  
+                  // Garantir que o material use a cor completamente
+                  material.metalness = 0.2;
+                  material.roughness = 0.8;
+                  
+                  // Desativar mapas que podem afetar a cor
+                  if (material.map) material.map.encoding = THREE.sRGBEncoding;
+                  material.emissive = new THREE.Color(0x000000);
+                  
+                  // Forçar atualização do material
                   material.needsUpdate = true;
+                }
+                
+                // Se for um material MeshStandardMaterial, podemos ajustar mais propriedades
+                if (material.type === 'MeshStandardMaterial') {
+                  material.emissiveIntensity = 0;
                 }
               });
             }
@@ -895,6 +911,15 @@
         newModel.setAttribute('color-changer', '');
         newModel.setAttribute('data-color', currentColor);
         
+        // Configurar para garantir prevalência da cor
+        newModel.setAttribute('material', {
+          shader: 'standard',
+          transparent: false,
+          opacity: 1.0,
+          metalness: 0.2,
+          roughness: 0.8
+        });
+        
         // Adicionar modelo ao container
         modelsContainer.appendChild(newModel);
         currentModel = newModel;
@@ -903,6 +928,14 @@
         newModel.addEventListener('model-loaded', () => {
           console.log('Modelo base carregado com sucesso');
           loadingOverlay.style.display = 'none';
+          
+          // Aplicar a cor imediatamente após o carregamento
+          setTimeout(() => {
+            const colorChangerComponent = newModel.components['color-changer'];
+            if (colorChangerComponent) {
+              colorChangerComponent.updateColor();
+            }
+          }, 100);
         });
         
         newModel.addEventListener('model-error', (error) => {
@@ -935,14 +968,37 @@
           console.log(`Botão ${option.getAttribute('data-color')}: ${isSelected ? 'ativo' : 'inativo'}`);
         });
         
-        // Se o modelo já estiver carregado, apenas alterar a cor
+        // Se o modelo já estiver carregado, aplicar a cor imediatamente
         if (currentModel) {
           currentModel.setAttribute('data-color', color);
           
-          // Forçar a atualização da cor
+          // Forçar a atualização da cor de forma mais agressiva
           const colorChangerComponent = currentModel.components['color-changer'];
           if (colorChangerComponent) {
+            // Aplicar cor várias vezes para garantir prevalência
             colorChangerComponent.updateColor();
+            
+            // Aplicar novamente após um pequeno delay para garantir
+            setTimeout(() => {
+              colorChangerComponent.updateColor();
+            }, 100);
+          }
+          
+          // Técnica alternativa: aplicar um shader custom se necessário
+          const mesh = currentModel.getObject3D('mesh');
+          if (mesh) {
+            mesh.traverse((node) => {
+              if (node.isMesh && node.material) {
+                const materials = Array.isArray(node.material) ? node.material : [node.material];
+                materials.forEach(material => {
+                  // Garantir que a cor seja aplicada efetivamente
+                  if (material.color) {
+                    material.color.set(colorValues[color]);
+                    material.needsUpdate = true;
+                  }
+                });
+              }
+            });
           }
         } else {
           // Se não houver modelo carregado, carregamos o modelo base
