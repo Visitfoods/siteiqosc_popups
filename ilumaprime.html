@@ -457,8 +457,10 @@
       vr-mode-ui="enabled: false"
       device-orientation-permission-ui="enabled: false" loading-screen="enabled: false">
 
-      <a-assets>
-        <!-- Os modelos serão carregados dinamicamente quando necessários -->
+      <a-assets timeout="10000">
+        <!-- Pré-carregar modelos para evitar problemas de carregamento -->
+        <a-asset-item id="preload-olive" src="modelo3d/modelo3_prime/olive-green.glb"></a-asset-item>
+        <a-asset-item id="preload-navy" src="modelo3d/modelo3_prime/navy-blazer.glb"></a-asset-item>
       </a-assets>
 
       <a-entity position="0 0 8">
@@ -806,6 +808,38 @@
       let lastModelChange = 0; // Timestamp da última troca de modelo
       const MODEL_CHANGE_COOLDOWN = 2000; // Tempo mínimo (ms) entre trocas de modelo
       
+      // Ativa modo de debug para diagnóstico
+      const DEBUG_MODE = true;
+      
+      function debugLog(message) {
+        if (DEBUG_MODE) {
+          console.log('%c[DEBUG] ' + message, 'background: #333; color: #ff5;');
+        }
+      }
+      
+      // Verifica se os arquivos existem
+      function checkFilesExistence() {
+        const modelPaths = Object.values(modelURLs);
+        debugLog("Verificando caminhos de modelos: " + JSON.stringify(modelPaths));
+        
+        // Testa cada URL de modelo para ver se está acessível
+        modelPaths.forEach(path => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('HEAD', path, true);
+          xhr.onload = function() {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              debugLog(`✅ Modelo encontrado: ${path}`);
+            } else {
+              debugLog(`❌ ERRO: Modelo não encontrado: ${path} (Status: ${xhr.status})`);
+            }
+          };
+          xhr.onerror = function() {
+            debugLog(`❌ ERRO: Falha ao acessar modelo: ${path}`);
+          };
+          xhr.send();
+        });
+      }
+      
       // Pré-carregamento de texturas, uma técnica para gerenciar melhor a memória
       const textureLoader = new THREE.TextureLoader();
       const loadedTextures = {};
@@ -830,6 +864,44 @@
         'gesture-handler-custom': '',
         'remove-transparency': ''
       };
+
+      // Registramos um componente para garantir carregamento de modelos
+      AFRAME.registerComponent('preload-models', {
+        init: function() {
+          debugLog('🔄 Inicializando pré-carregamento de modelos');
+          
+          // Registrar evento para quando os assets forem carregados
+          const scene = document.querySelector('a-scene');
+          if (scene.hasLoaded) {
+            this.onSceneLoaded();
+          } else {
+            scene.addEventListener('loaded', this.onSceneLoaded.bind(this));
+          }
+        },
+        
+        onSceneLoaded: function() {
+          debugLog('🏁 Cena A-Frame carregada');
+          
+          // Verificar se os modelos pré-carregados estão disponíveis
+          Object.keys(modelURLs).forEach(modelType => {
+            const preloadId = `preload-${modelType}`;
+            const preloadEl = document.getElementById(preloadId);
+            if (preloadEl) {
+              debugLog(`✓ Modelo pré-carregado encontrado: ${preloadId}`);
+            } else {
+              debugLog(`⚠️ Modelo pré-carregado não encontrado: ${preloadId}`);
+            }
+          });
+        }
+      });
+
+      // Adicionar componente de pré-carregamento à cena
+      document.addEventListener('DOMContentLoaded', function() {
+        const scene = document.querySelector('a-scene');
+        if (scene) {
+          scene.setAttribute('preload-models', '');
+        }
+      });
 
       // Otimizador de desempenho para A-Frame
       AFRAME.registerComponent('optimize-model', {
@@ -915,20 +987,60 @@
         }
       }
 
+      // Uma forma alternativa de carregar modelo que funciona melhor em alguns casos
+      function loadModelAlternative(modelType, colorName, entityElement) {
+        return new Promise((resolve, reject) => {
+          debugLog(`🔄 Usando método alternativo para carregar ${modelType}`);
+          
+          const modelURL = modelURLs[modelType];
+          
+          // Remover atributo atual se existir
+          if (entityElement.hasAttribute('gltf-model')) {
+            entityElement.removeAttribute('gltf-model');
+          }
+          
+          // Esperar remoção ser processada
+          setTimeout(() => {
+            // Usar o preload se disponível
+            const preloadId = `preload-${modelType}`;
+            const preloadEl = document.getElementById(preloadId);
+            
+            if (preloadEl && preloadEl.hasAttribute('src')) {
+              debugLog(`🔍 Usando modelo pré-carregado: #${preloadId}`);
+              entityElement.setAttribute('gltf-model', `#${preloadId}`);
+            } else {
+              debugLog(`🔍 Usando URL direta: ${modelURL}`);
+              entityElement.setAttribute('gltf-model', modelURL);
+            }
+            
+            resolve();
+          }, 100);
+        });
+      }
+
       // Função para carregar um modelo específico com melhor gestão de memória
       function loadModel(modelType, colorName) {
         // Verificar se já está a mudar de modelo para evitar chamadas repetidas
         if (isChangingModel) {
-          console.log('Já está a ocorrer uma troca de modelo, ignorando este pedido');
+          debugLog('Já está a ocorrer uma troca de modelo, ignorando este pedido');
           return;
         }
         
         // Verificar cooldown para evitar trocas frequentes que podem causar problemas de memória
         const now = Date.now();
         if (now - lastModelChange < MODEL_CHANGE_COOLDOWN) {
-          console.log('Aguardando cooldown para troca de modelo');
+          debugLog('Aguardando cooldown para troca de modelo');
           return;
         }
+        
+        // Verificar se o modelo existe no mapeamento
+        if (!modelURLs[modelType]) {
+          debugLog(`❌ ERRO: Tipo de modelo inválido: ${modelType}`);
+          return;
+        }
+        
+        const modelURL = modelURLs[modelType];
+        debugLog(`🔍 Tentando carregar modelo: ${modelType} (${modelURL}) com cor ${colorName}`);
         
         isChangingModel = true;
         lastModelChange = now;
@@ -939,109 +1051,177 @@
         const loadingCounter = document.getElementById('loading-counter');
         loadingCounter.textContent = 'Carregando modelo...';
         
-        console.log(`Carregando modelo: ${modelType} com cor ${colorName}`);
-        
         // Método assíncrono para evitar bloqueio da UI
         setTimeout(() => {
-          // Remover modelo atual se existir
-          if (currentModelEntity) {
-            console.log(`Removendo modelo atual: ${currentModelEntity.id}`);
+          try {
+            debugLog(`🧹 Limpando modelo anterior e preparando para carregar: ${modelType}`);
             
-            // Limpar recursos explicitamente antes de remover
-            const mesh = currentModelEntity.getObject3D('mesh');
-            if (mesh) {
-              mesh.traverse((node) => {
-                if (node.geometry) node.geometry.dispose();
-                if (node.material) {
-                  if (Array.isArray(node.material)) {
-                    node.material.forEach(mat => {
-                      Object.keys(mat).forEach(prop => {
-                        if (mat[prop] && mat[prop].dispose) mat[prop].dispose();
-                      });
-                      mat.dispose();
-                    });
-                  } else if (node.material.dispose) {
-                    Object.keys(node.material).forEach(prop => {
-                      if (node.material[prop] && node.material[prop].dispose) node.material[prop].dispose();
-                    });
-                    node.material.dispose();
-                  }
+            // Remover modelo atual se existir
+            if (currentModelEntity) {
+              debugLog(`🗑️ Removendo modelo atual: ${currentModelEntity.id}`);
+              
+              try {
+                // Limpar recursos explicitamente antes de remover
+                const mesh = currentModelEntity.getObject3D('mesh');
+                if (mesh) {
+                  mesh.traverse((node) => {
+                    try {
+                      if (node.geometry) node.geometry.dispose();
+                      if (node.material) {
+                        if (Array.isArray(node.material)) {
+                          node.material.forEach(mat => {
+                            Object.keys(mat).forEach(prop => {
+                              if (mat[prop] && mat[prop].dispose) mat[prop].dispose();
+                            });
+                            mat.dispose();
+                          });
+                        } else if (node.material.dispose) {
+                          Object.keys(node.material).forEach(prop => {
+                            if (node.material[prop] && node.material[prop].dispose) node.material[prop].dispose();
+                          });
+                          node.material.dispose();
+                        }
+                      }
+                    } catch (e) {
+                      debugLog(`⚠️ Erro ao limpar recursos do nó: ${e.message}`);
+                    }
+                  });
                 }
-              });
+              } catch (e) {
+                debugLog(`⚠️ Erro ao limpar modelo: ${e.message}`);
+              }
+              
+              try {
+                modelsContainer.removeChild(currentModelEntity);
+              } catch (e) {
+                debugLog(`⚠️ Erro ao remover modelo do DOM: ${e.message}`);
+              }
+              
+              currentModelEntity = null;
             }
             
-            modelsContainer.removeChild(currentModelEntity);
-            currentModelEntity = null;
-          }
-          
-          // Limpeza de memória mais agressiva
-          cleanupMemory();
-          
-          // Criar novo elemento para o modelo
-          const newModel = document.createElement('a-entity');
-          newModel.id = `modelo-${modelType}`;
-          
-          // Configurar o novo modelo
-          for (const [attr, value] of Object.entries(modelConfig)) {
-            newModel.setAttribute(attr, value);
-          }
-          
-          // Adicionar componentes de otimização e troca de cor
-          newModel.setAttribute('optimize-model', '');
-          newModel.setAttribute('color-changer', '');
-          newModel.setAttribute('data-color', colorName);
-          
-          // Adicionar evento para detectar quando o modelo estiver pronto
-          newModel.addEventListener('model-loaded', () => {
-            console.log(`Modelo ${modelType} carregado com sucesso`);
-            loadingOverlay.style.display = 'none';
+            // Limpeza de memória mais agressiva
+            debugLog(`🧹 Executando limpeza de memória`);
+            cleanupMemory();
             
-            // Forçar a atualização da cor após o carregamento
-            const colorChangerComponent = newModel.components['color-changer'];
-            if (colorChangerComponent) {
-              colorChangerComponent.updateColor();
+            // Criar novo elemento para o modelo
+            debugLog(`🔨 Criando novo elemento para modelo: ${modelType}`);
+            const newModel = document.createElement('a-entity');
+            newModel.id = `modelo-${modelType}`;
+            
+            // Configurar o novo modelo
+            for (const [attr, value] of Object.entries(modelConfig)) {
+              newModel.setAttribute(attr, value);
             }
             
-            // Permitir novas trocas de modelo
-            setTimeout(() => {
+            // Adicionar componentes de otimização e troca de cor
+            newModel.setAttribute('optimize-model', '');
+            newModel.setAttribute('color-changer', '');
+            newModel.setAttribute('data-color', colorName);
+            newModel.setAttribute('model-type', modelType); // Para facilitar a depuração
+            
+            // Adicionar evento para detectar quando o modelo estiver pronto
+            newModel.addEventListener('model-loaded', (event) => {
+              debugLog(`✅ Modelo ${modelType} carregado com sucesso`);
+              loadingOverlay.style.display = 'none';
+              
+              // Forçar a atualização da cor após o carregamento
+              try {
+                const colorChangerComponent = newModel.components['color-changer'];
+                if (colorChangerComponent) {
+                  colorChangerComponent.updateColor();
+                  debugLog(`🎨 Cor ${colorName} aplicada ao modelo ${modelType}`);
+                } else {
+                  debugLog(`⚠️ Componente color-changer não encontrado`);
+                }
+              } catch (e) {
+                debugLog(`⚠️ Erro ao aplicar cor: ${e.message}`);
+              }
+              
+              // Permitir novas trocas de modelo
+              setTimeout(() => {
+                isChangingModel = false;
+                debugLog(`🔓 Liberada troca de modelos`);
+              }, 500); // Adicionar pequeno atraso para estabilizar
+            });
+            
+            newModel.addEventListener('model-error', (error) => {
+              debugLog(`❌ ERRO ao carregar modelo ${modelType}: ${error.detail.src}`);
+              console.error(`Detalhes do erro:`, error);
+              loadingOverlay.style.display = 'none';
+              loadingCounter.textContent = `Erro ao carregar modelo: ${modelType}`;
               isChangingModel = false;
-            }, 500); // Adicionar pequeno atraso para estabilizar
-          });
-          
-          newModel.addEventListener('model-error', (error) => {
-            console.error(`Erro ao carregar modelo ${modelType}:`, error);
+              
+              // Tentar uma segunda vez em caso de erro, mas esperar mais tempo
+              debugLog(`🔄 Tentando novamente em 1 segundo...`);
+              setTimeout(() => {
+                const modelURL = modelURLs[modelType];
+                debugLog(`🔄 Nova tentativa: ${modelURL}`);
+                newModel.setAttribute('gltf-model', '');
+                setTimeout(() => {
+                  newModel.setAttribute('gltf-model', modelURL);
+                }, 200);
+              }, 1000);
+            });
+            
+            // Adicionar modelo ao container após preparação
+            debugLog(`📦 Adicionando modelo ao container`);
+            modelsContainer.appendChild(newModel);
+            currentModelEntity = newModel;
+            
+            // Iniciar carregamento do modelo com pequeno atraso para garantir que DOM está pronto
+            setTimeout(() => {
+              debugLog(`🔗 Definindo URL do modelo: ${modelURLs[modelType]}`);
+              
+              // Primeiro tentar o método padrão
+              try {
+                newModel.setAttribute('gltf-model', modelURLs[modelType]);
+                
+                // Se for o modelo navy, também tente o método alternativo após um breve delay
+                if (modelType === 'navy') {
+                  debugLog(`⚠️ Modelo navy detectado, aplicando método de carregamento alternativo como fallback`);
+                  setTimeout(() => {
+                    if (newModel.components['model-error'] || !newModel.getObject3D('mesh')) {
+                      debugLog(`🔄 Iniciando método alternativo para o modelo navy`);
+                      loadModelAlternative(modelType, colorName, newModel);
+                    }
+                  }, 1000);
+                }
+              } catch (e) {
+                debugLog(`⚠️ Erro ao definir gltf-model, tentando método alternativo: ${e.message}`);
+                loadModelAlternative(modelType, colorName, newModel);
+              }
+            }, 100);
+          } catch (e) {
+            debugLog(`❌ ERRO crítico ao carregar modelo: ${e.message}`);
+            console.error(e);
             loadingOverlay.style.display = 'none';
-            loadingCounter.textContent = 'Erro ao carregar modelo';
             isChangingModel = false;
-          });
-          
-          // Adicionar modelo ao container após preparação
-          modelsContainer.appendChild(newModel);
-          currentModelEntity = newModel;
-          
-          // Iniciar carregamento do modelo com pequeno atraso para garantir que DOM está pronto
-          setTimeout(() => {
-            newModel.setAttribute('gltf-model', modelURLs[modelType]);
-          }, 50);
-        }, 100); // Pequeno atraso para garantir que UI esteja atualizada
+          }
+        }, 200); // Pequeno atraso para garantir que UI esteja atualizada
       }
 
       // Função para mudar de cor e modelo com proteção contra cliques múltiplos
       function changeColorAndModel(colorOption) {
         // Verificar se já está a processar uma mudança de modelo
         if (isChangingModel) {
-          console.log('Já está a ocorrer uma troca de modelo, ignorando este clique');
+          debugLog('Já está a ocorrer uma troca de modelo, ignorando este clique');
           return;
         }
         
         const color = colorOption.getAttribute('data-color');
         const model = colorOption.getAttribute('data-model');
         
-        console.log('Tentando mudar para:', color, model);
+        debugLog(`🖱️ Clique: mudar para cor=${color}, modelo=${model}`);
         
         // Validar cores e modelos
-        if (!colorValues[color] || !modelURLs[model]) {
-          console.error('Cor ou modelo inválidos:', color, model);
+        if (!colorValues[color]) {
+          debugLog(`❌ Cor inválida: ${color}`);
+          return;
+        }
+        
+        if (!modelURLs[model]) {
+          debugLog(`❌ Modelo inválido: ${model}`);
           return;
         }
         
@@ -1056,14 +1236,22 @@
             option.classList.toggle('active', isSelected);
           });
           
+          debugLog(`🎨 Apenas alterando cor para: ${color}`);
+          
           // Atualizar apenas a cor sem recarregar o modelo
           currentModelEntity.setAttribute('data-color', color);
-          const colorChangerComponent = currentModelEntity.components['color-changer'];
-          if (colorChangerComponent) {
-            colorChangerComponent.updateColor();
+          try {
+            const colorChangerComponent = currentModelEntity.components['color-changer'];
+            if (colorChangerComponent) {
+              colorChangerComponent.updateColor();
+              debugLog(`✅ Cor alterada com sucesso`);
+            } else {
+              debugLog(`⚠️ Componente color-changer não encontrado`);
+            }
+          } catch (e) {
+            debugLog(`⚠️ Erro ao atualizar cor: ${e.message}`);
           }
           
-          console.log('Apenas cor alterada, mantendo o mesmo modelo');
           return;
         }
 
@@ -1078,16 +1266,23 @@
         });
         
         // Carregar o modelo correspondente com a cor selecionada
+        debugLog(`🔄 Iniciando carregamento de novo modelo: ${model}`);
         loadModel(model, color);
       }
 
       // Inicialização com baixo uso de memória
       function initializeScene() {
-        console.log('Inicializando cena...');
+        debugLog('🚀 Inicializando cena...');
+        
+        // Verificar se os arquivos dos modelos existem
+        checkFilesExistence();
         
         // Pré-carregar recursos críticos para evitar falhas de memória durante trocas
+        debugLog(`🎨 Pré-registrando cores`);
         document.querySelectorAll('.color-option').forEach(option => {
           const color = option.getAttribute('data-color');
+          const model = option.getAttribute('data-model');
+          debugLog(`Botão de cor: ${color} para modelo: ${model}`);
           if (color && colorValues[color]) {
             // Pré-registrar a cor para uso posterior
             new THREE.Color(colorValues[color]);
@@ -1099,9 +1294,11 @@
           // Usar o primeiro botão de cor como padrão
           const defaultOption = document.querySelector('.color-option.active');
           if (defaultOption) {
+            debugLog('🎬 Carregando modelo inicial a partir do botão ativo');
             changeColorAndModel(defaultOption);
           } else {
             // Fallback se não houver nenhum marcado como ativo
+            debugLog('🎬 Carregando modelo inicial (fallback): olive, light-olive');
             loadModel('olive', 'light-olive');
           }
         }, 1000); // Delay maior para garantir que a página esteja completamente carregada
