@@ -98,6 +98,7 @@
         width: 30px;
         height: 30px;
         object-fit: contain;
+        filter: brightness(0) invert(1);
       }
 
       .feature-text {
@@ -389,6 +390,133 @@
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
       }
+
+      /* Estilos para os popups de features */
+      .feature-popup {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+
+      .feature-popup.active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .popup-card {
+        width: 90%;
+        max-width: 400px;
+        background-image: linear-gradient(to bottom right, #2D8F9B, #045557);
+        border: 2px solid rgba(60, 171, 184, 0.6);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(8px);
+        padding: 24px;
+        position: relative;
+      }
+
+      .popup-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+
+      .popup-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 64px;
+        height: 64px;
+        background-color: rgba(26, 106, 114, 0.6);
+        backdrop-filter: blur(4px);
+        border-radius: 50%;
+        padding: 8px;
+        border: 2px solid rgba(92, 217, 232, 0.6);
+      }
+
+      .popup-icon img {
+        width: 40px;
+        height: 40px;
+        filter: brightness(0) invert(1);
+      }
+
+      /* Classe específica para os ícones SVG nos popups */
+      .popup-icon img.svg-icon {
+        filter: brightness(0) invert(1);
+        width: 40px;
+        height: 40px;
+      }
+
+      .popup-title {
+        font-size: 24px;
+        font-weight: bold;
+        color: white;
+      }
+
+      .popup-content {
+        background-color: rgba(26, 106, 114, 0.2);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(92, 217, 232, 0.2);
+        border-radius: 8px;
+        padding: 16px;
+        color: white;
+        line-height: 1.5;
+      }
+
+      .popup-content p {
+        margin: 8px 0;
+      }
+
+      .popup-content .font-bold {
+        font-weight: bold;
+      }
+
+      .popup-content .mt-2 {
+        margin-top: 8px;
+      }
+
+      .popup-content .text-white\/70 {
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .popup-content .italic {
+        font-style: italic;
+      }
+
+      .close-popup-btn {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        width: 40px;
+        height: 40px;
+        background-color: rgba(26, 106, 114, 0.6);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(92, 217, 232, 0.3);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        line-height: 1;
+      }
+
+      .close-popup-btn:hover {
+        background-color: rgba(26, 106, 114, 0.8);
+      }
     </style>
   </head>
   <body>
@@ -411,36 +539,105 @@
     </div>
    
     <div class="features-container">
-      <div class="feature-item">
+      <div class="feature-item" data-feature="FlexBattery">
         <div class="feature-icon">
-          <img src="icons/battery.webp" alt="Bateria">
+          <img src="icons/iconspopups/FlexBattery.svg" alt="Bateria">
         </div>
         <div class="feature-text">
           <span class="feature-label">Flex Battery</span>
         </div>
       </div>
-      <div class="feature-item">
+      <div class="feature-item" data-feature="FlexPuff">
         <div class="feature-icon">
-          <img src="icons/puff.webp" alt="Puffs">
+          <img src="icons/iconspopups/FlexPuff.svg" alt="Puffs">
         </div>
         <div class="feature-text">
           <span class="feature-label">Flex Puff</span>
         </div>
       </div>
-      <div class="feature-item">
+      <div class="feature-item" data-feature="ModoPausa">
         <div class="feature-icon">
-          <img src="icons/pause.webp" alt="Tempo">
+          <img src="icons/iconspopups/ModoPausa.svg" alt="Tempo">
         </div>
         <div class="feature-text">
           <span class="feature-label">Modo Pausa</span>
         </div>
       </div>
-      <div class="feature-item">
+      <div class="feature-item" data-feature="EcraTatil">
         <div class="feature-icon">
-          <img src="icons/touch.webp" alt="Touch">
+          <img src="icons/iconspopups/EcraTatil.svg" alt="Touch">
         </div>
         <div class="feature-text">
           <span class="feature-label">Ecrã Tátil</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Popups de Features -->
+    <!-- Popup: Flex Battery -->
+    <div id="FlexBattery-popup" class="feature-popup">
+      <div class="popup-card">
+        <div class="popup-header">
+          <div class="popup-icon">
+            <img src="icons/iconspopups/FlexBattery.svg" alt="Flex Battery" class="svg-icon">
+          </div>
+          <h3 class="popup-title">Flex Battery</h3>
+        </div>
+        <button class="close-popup-btn" aria-label="Fechar">×</button>
+        <div class="popup-content">
+          <p>Já é possível adaptar a bateria do seu dispositivo com o FlexBattery:</p>
+          <p class="mt-2"><span class="font-bold">Modo Eco</span><br>Permite prolongar o tempo de vida útil da bateria do equipamento até um ano**;</p>
+          <p class="mt-2">ou</p>
+          <p class="mt-2"><span class="font-bold">Modo Desempenho</span><br>Até 3 utilizações consecutivas**</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Popup: Flex Puff -->
+    <div id="FlexPuff-popup" class="feature-popup">
+      <div class="popup-card">
+        <div class="popup-header">
+          <div class="popup-icon">
+            <img src="icons/iconspopups/FlexPuff.svg" alt="Flex Puff" class="svg-icon">
+          </div>
+          <h3 class="popup-title">Flex Puff</h3>
+        </div>
+        <button class="close-popup-btn" aria-label="Fechar">×</button>
+        <div class="popup-content">
+          <p>A funcionalidade Flexpuff adapta-se de forma inteligente ao ritmo de utilização, podendo permitir até 4 aspirações extra, para uma experiência de utilização máxima de até 6 minutos*.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Popup: Modo Pausa -->
+    <div id="ModoPausa-popup" class="feature-popup">
+      <div class="popup-card">
+        <div class="popup-header">
+          <div class="popup-icon">
+            <img src="icons/iconspopups/ModoPausa.svg" alt="Modo Pausa" class="svg-icon">
+          </div>
+          <h3 class="popup-title">Modo Pausa</h3>
+        </div>
+        <button class="close-popup-btn" aria-label="Fechar">×</button>
+        <div class="popup-content">
+          <p>Já é possível interromper e recomeçar a utilização até 8 minutos, sem que o SMARTCORE STICK™ fique inutilizado, com o novo Modo Pausa.</p>
+          <p class="mt-2 text-white/70 italic">Apenas disponível no Modo Desempenho</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Popup: Ecrã Tátil -->
+    <div id="EcraTatil-popup" class="feature-popup">
+      <div class="popup-card">
+        <div class="popup-header">
+          <div class="popup-icon">
+            <img src="icons/iconspopups/EcraTatil.svg" alt="Ecrã Tátil" class="svg-icon">
+          </div>
+          <h3 class="popup-title">Ecrã Tátil</h3>
+        </div>
+        <button class="close-popup-btn" aria-label="Fechar">×</button>
+        <div class="popup-content">
+          <p>O novo Ecrã Tátil permite acompanhar todas as informações relativas ao estado do dispositivo e personalizar a sua utilização.</p>
         </div>
       </div>
     </div>
@@ -1243,6 +1440,60 @@
             debugLog('📱 Página em segundo plano, limpando memória não essencial');
             cleanupMemory();
           }
+        });
+      });
+    </script>
+
+    <script>
+      // Controle dos popups de features
+      document.addEventListener('DOMContentLoaded', function() {
+        // Selecionar todos os itens de feature
+        const featureItems = document.querySelectorAll('.feature-item');
+        const featurePopups = document.querySelectorAll('.feature-popup');
+        const closeButtons = document.querySelectorAll('.close-popup-btn');
+        
+        // Adicionar event listeners para cada item de feature
+        featureItems.forEach(item => {
+          item.addEventListener('click', function() {
+            const featureName = this.getAttribute('data-feature');
+            const popup = document.getElementById(`${featureName}-popup`);
+            
+            if (popup) {
+              // Abrir o popup
+              popup.classList.add('active');
+              
+              // Impedir rolagem da página
+              document.body.style.overflow = 'hidden';
+            }
+          });
+        });
+        
+        // Adicionar event listeners para os botões de fechar
+        closeButtons.forEach(button => {
+          button.addEventListener('click', function() {
+            const popup = this.closest('.feature-popup');
+            
+            if (popup) {
+              // Fechar o popup
+              popup.classList.remove('active');
+              
+              // Permitir rolagem da página novamente
+              document.body.style.overflow = '';
+            }
+          });
+        });
+        
+        // Fechar popup ao clicar fora da área do card
+        featurePopups.forEach(popup => {
+          popup.addEventListener('click', function(event) {
+            if (event.target === this) {
+              // Fechar o popup
+              popup.classList.remove('active');
+              
+              // Permitir rolagem da página novamente
+              document.body.style.overflow = '';
+            }
+          });
         });
       });
     </script>
