@@ -451,55 +451,38 @@
 
       .popup-slider-dots {
         display: flex;
-        gap: 8px;
+        gap: 15px;
       }
 
       .popup-slider-dot {
-        width: 10px;
-        height: 10px;
+        width: 36px;
+        height: 36px;
         border-radius: 50%;
-        background-color: rgba(255, 255, 255, 0.4);
+        background-color: rgba(26, 106, 114, 0.5);
         cursor: pointer;
-        transition: background-color 0.3s;
-      }
-
-      .popup-slider-dot.active {
-        background-color: white;
-      }
-
-      .popup-nav-btn {
-        background-color: rgba(26, 106, 114, 0.6);
-        color: white;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
+        transition: all 0.3s ease;
+        padding: 5px;
+        border: 2px solid transparent;
         display: flex;
         align-items: center;
         justify-content: center;
-        border: none;
-        font-size: 20px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-        outline: none;
-        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
       }
 
-      .popup-nav-btn:hover {
+      .popup-slider-dot.active {
         background-color: rgba(26, 106, 114, 0.8);
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        transform: scale(1.1);
+      }
+      
+      .popup-slider-dot img {
+        width: 22px;
+        height: 22px;
+        filter: brightness(0) invert(1);
       }
 
-      .popup-nav-prev {
-        position: absolute;
-        left: 20px;
-        top: 50%;
-        transform: translateY(-50%);
-      }
-
-      .popup-nav-next {
-        position: absolute;
-        right: 20px;
-        top: 50%;
-        transform: translateY(-50%);
+      /* Removendo os estilos dos botões de navegação já que não serão mais usados */
+      .popup-nav-btn {
+        display: none;
       }
 
       .popup-card {
@@ -682,14 +665,20 @@
           <p class="mt-2"><span class="font-bold">Modo Desempenho</span><br>Até 3 utilizações consecutivas**</p>
         </div>
         <div class="popup-slider-controls">
-          <button class="popup-nav-btn popup-nav-prev" aria-label="Anterior">←</button>
           <div class="popup-slider-dots">
-            <div class="popup-slider-dot active" data-index="0"></div>
-            <div class="popup-slider-dot" data-index="1"></div>
-            <div class="popup-slider-dot" data-index="2"></div>
-            <div class="popup-slider-dot" data-index="3"></div>
+            <div class="popup-slider-dot active" data-index="0">
+              <img src="icons/iconspopups/FlexBattery.svg" alt="Flex Battery">
+            </div>
+            <div class="popup-slider-dot" data-index="1">
+              <img src="icons/iconspopups/FlexPuff.svg" alt="Flex Puff">
+            </div>
+            <div class="popup-slider-dot" data-index="2">
+              <img src="icons/iconspopups/ModoPausa.svg" alt="Modo Pausa">
+            </div>
+            <div class="popup-slider-dot" data-index="3">
+              <img src="icons/iconspopups/EcraTatil.svg" alt="Ecrã Tátil">
+            </div>
           </div>
-          <button class="popup-nav-btn popup-nav-next" aria-label="Próximo">→</button>
         </div>
       </div>
     </div>
@@ -708,14 +697,20 @@
           <p>A funcionalidade Flexpuff adapta-se de forma inteligente ao ritmo de utilização, podendo permitir até 4 aspirações extra, para uma experiência de utilização máxima de até 6 minutos*.</p>
         </div>
         <div class="popup-slider-controls">
-          <button class="popup-nav-btn popup-nav-prev" aria-label="Anterior">←</button>
           <div class="popup-slider-dots">
-            <div class="popup-slider-dot" data-index="0"></div>
-            <div class="popup-slider-dot active" data-index="1"></div>
-            <div class="popup-slider-dot" data-index="2"></div>
-            <div class="popup-slider-dot" data-index="3"></div>
+            <div class="popup-slider-dot" data-index="0">
+              <img src="icons/iconspopups/FlexBattery.svg" alt="Flex Battery">
+            </div>
+            <div class="popup-slider-dot active" data-index="1">
+              <img src="icons/iconspopups/FlexPuff.svg" alt="Flex Puff">
+            </div>
+            <div class="popup-slider-dot" data-index="2">
+              <img src="icons/iconspopups/ModoPausa.svg" alt="Modo Pausa">
+            </div>
+            <div class="popup-slider-dot" data-index="3">
+              <img src="icons/iconspopups/EcraTatil.svg" alt="Ecrã Tátil">
+            </div>
           </div>
-          <button class="popup-nav-btn popup-nav-next" aria-label="Próximo">→</button>
         </div>
       </div>
     </div>
@@ -735,14 +730,20 @@
           <p class="mt-2 text-white/70 italic">Apenas disponível no Modo Desempenho</p>
         </div>
         <div class="popup-slider-controls">
-          <button class="popup-nav-btn popup-nav-prev" aria-label="Anterior">←</button>
           <div class="popup-slider-dots">
-            <div class="popup-slider-dot" data-index="0"></div>
-            <div class="popup-slider-dot" data-index="1"></div>
-            <div class="popup-slider-dot active" data-index="2"></div>
-            <div class="popup-slider-dot" data-index="3"></div>
+            <div class="popup-slider-dot" data-index="0">
+              <img src="icons/iconspopups/FlexBattery.svg" alt="Flex Battery">
+            </div>
+            <div class="popup-slider-dot" data-index="1">
+              <img src="icons/iconspopups/FlexPuff.svg" alt="Flex Puff">
+            </div>
+            <div class="popup-slider-dot active" data-index="2">
+              <img src="icons/iconspopups/ModoPausa.svg" alt="Modo Pausa">
+            </div>
+            <div class="popup-slider-dot" data-index="3">
+              <img src="icons/iconspopups/EcraTatil.svg" alt="Ecrã Tátil">
+            </div>
           </div>
-          <button class="popup-nav-btn popup-nav-next" aria-label="Próximo">→</button>
         </div>
       </div>
     </div>
@@ -761,14 +762,20 @@
           <p>O novo Ecrã Tátil permite acompanhar todas as informações relativas ao estado do dispositivo e personalizar a sua utilização.</p>
         </div>
         <div class="popup-slider-controls">
-          <button class="popup-nav-btn popup-nav-prev" aria-label="Anterior">←</button>
           <div class="popup-slider-dots">
-            <div class="popup-slider-dot" data-index="0"></div>
-            <div class="popup-slider-dot" data-index="1"></div>
-            <div class="popup-slider-dot" data-index="2"></div>
-            <div class="popup-slider-dot active" data-index="3"></div>
+            <div class="popup-slider-dot" data-index="0">
+              <img src="icons/iconspopups/FlexBattery.svg" alt="Flex Battery">
+            </div>
+            <div class="popup-slider-dot" data-index="1">
+              <img src="icons/iconspopups/FlexPuff.svg" alt="Flex Puff">
+            </div>
+            <div class="popup-slider-dot" data-index="2">
+              <img src="icons/iconspopups/ModoPausa.svg" alt="Modo Pausa">
+            </div>
+            <div class="popup-slider-dot active" data-index="3">
+              <img src="icons/iconspopups/EcraTatil.svg" alt="Ecrã Tátil">
+            </div>
           </div>
-          <button class="popup-nav-btn popup-nav-next" aria-label="Próximo">→</button>
         </div>
       </div>
     </div>
@@ -1328,8 +1335,6 @@
         const featureItems = document.querySelectorAll('.feature-item');
         const featurePopups = document.querySelectorAll('.feature-popup');
         const closeButtons = document.querySelectorAll('.close-popup-btn');
-        const popupNavPrev = document.querySelectorAll('.popup-nav-prev');
-        const popupNavNext = document.querySelectorAll('.popup-nav-next');
         const sliderDots = document.querySelectorAll('.popup-slider-dot');
         const totalPopups = featurePopups.length;
         
@@ -1393,29 +1398,7 @@
           });
         });
         
-        // Navegação entre popups - botão anterior
-        popupNavPrev.forEach(button => {
-          button.addEventListener('click', function(event) {
-            event.stopPropagation();
-            const popup = this.closest('.feature-popup');
-            const currentIndex = parseInt(popup.getAttribute('data-index'));
-            const prevIndex = (currentIndex - 1 + totalPopups) % totalPopups;
-            openPopupByIndex(prevIndex);
-          });
-        });
-        
-        // Navegação entre popups - botão próximo
-        popupNavNext.forEach(button => {
-          button.addEventListener('click', function(event) {
-            event.stopPropagation();
-            const popup = this.closest('.feature-popup');
-            const currentIndex = parseInt(popup.getAttribute('data-index'));
-            const nextIndex = (currentIndex + 1) % totalPopups;
-            openPopupByIndex(nextIndex);
-          });
-        });
-        
-        // Navegação usando os pontos do slider
+        // Navegação usando os ícones do slider
         sliderDots.forEach(dot => {
           dot.addEventListener('click', function(event) {
             event.stopPropagation();
