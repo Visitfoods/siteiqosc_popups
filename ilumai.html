@@ -548,24 +548,7 @@
         line-height: 1.5;
         font-family: 'IQOSSans-Regular', sans-serif;
         height: 150px;
-        overflow-y: scroll;
-        scrollbar-width: thin;
-        scrollbar-color: rgba(255, 255, 255, 0.5) rgba(26, 106, 114, 0.3);
-      }
-
-      /* Estilos para scrollbars em browsers webkit (Chrome, Safari, Edge) */
-      .popup-content::-webkit-scrollbar {
-        width: 8px;
-      }
-
-      .popup-content::-webkit-scrollbar-track {
-        background: rgba(26, 106, 114, 0.3);
-        border-radius: 4px;
-      }
-
-      .popup-content::-webkit-scrollbar-thumb {
-        background-color: rgba(255, 255, 255, 0.5);
-        border-radius: 4px;
+        overflow-y: auto;
       }
 
       .popup-content p {
@@ -1406,15 +1389,6 @@
         // Adicionar event listeners para os botões de fechar
         closeButtons.forEach(button => {
           button.addEventListener('click', closeAllPopups);
-        });
-        
-        // Fechar popup ao clicar fora da área do card
-        featurePopups.forEach(popup => {
-          popup.addEventListener('click', function(event) {
-            if (event.target === this) {
-              closeAllPopups();
-            }
-          });
         });
         
         // Navegação usando os ícones do slider
