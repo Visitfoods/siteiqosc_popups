@@ -435,19 +435,21 @@
         position: absolute;
         width: 400px;
         transform: translateX(0);
+        opacity: 0;
+        scale: 0.8;
+        filter: blur(3px);
+        z-index: 10;
+        pointer-events: none;
+        transition: transform 0.6s ease-out, opacity 0.6s ease-out, scale 0.6s ease-out, filter 0.6s ease-out;
+        visibility: hidden;
+      }
+
+      .popup-card.active {
         opacity: 1;
         scale: 1;
         filter: blur(0px);
-        z-index: 10;
         pointer-events: auto;
-        transition: transform 0.6s ease-out, opacity 0.6s ease-out, scale 0.6s ease-out, filter 0.6s ease-out;
-      }
-
-      .popup-card:not(.active) {
-        scale: 0.8;
-        opacity: 0.7;
-        filter: blur(3px);
-        pointer-events: none;
+        visibility: visible;
       }
 
       /* Estilizar o SVG da borda */
@@ -613,7 +615,7 @@
             <div class="relative">
               <div class="flex items-center gap-4 mb-5">
                 <div class="flex items-center justify-center w-16 h-16 rounded-full bg-[#1A6A72]/60 backdrop-blur-md p-2 ring-2 ring-[#5CD9E8]/60">
-                  <img src="/IQOSILUMAV2/Icons/FlexPuff.svg" alt="Flex Puff" class="w-10 h-10 brightness-0 invert">
+                  <img src="icons/puff.webp" alt="Flex Puff" class="w-10 h-10 brightness-0 invert">
                 </div>
                 <h3 class="text-2xl font-bold text-white">Flex Puff</h3>
               </div>
@@ -648,7 +650,7 @@
             <div class="relative">
               <div class="flex items-center gap-4 mb-5">
                 <div class="flex items-center justify-center w-16 h-16 rounded-full bg-[#1A6A72]/60 backdrop-blur-md p-2 ring-2 ring-[#5CD9E8]/60">
-                  <img src="/IQOSILUMAV2/Icons/FlexBattery.svg" alt="Flex Battery" class="w-10 h-10 brightness-0 invert">
+                  <img src="icons/battery.webp" alt="Flex Battery" class="w-10 h-10 brightness-0 invert">
                 </div>
                 <h3 class="text-2xl font-bold text-white">Flex Battery</h3>
               </div>
@@ -686,7 +688,7 @@
             <div class="relative">
               <div class="flex items-center gap-4 mb-5">
                 <div class="flex items-center justify-center w-16 h-16 rounded-full bg-[#1A6A72]/60 backdrop-blur-md p-2 ring-2 ring-[#5CD9E8]/60">
-                  <img src="/IQOSILUMAV2/Icons/Modo Pausa.svg" alt="Modo Pausa" class="w-10 h-10 brightness-0 invert">
+                  <img src="icons/pause.webp" alt="Modo Pausa" class="w-10 h-10 brightness-0 invert">
                 </div>
                 <h3 class="text-2xl font-bold text-white">Modo Pausa</h3>
               </div>
@@ -722,7 +724,7 @@
             <div class="relative">
               <div class="flex items-center gap-4 mb-5">
                 <div class="flex items-center justify-center w-16 h-16 rounded-full bg-[#1A6A72]/60 backdrop-blur-md p-2 ring-2 ring-[#5CD9E8]/60">
-                  <img src="/IQOSILUMAV2/Icons/EcraTatil.svg" alt="Ecrã Tátil" class="w-10 h-10 brightness-0 invert">
+                  <img src="icons/touch.webp" alt="Ecrã Tátil" class="w-10 h-10 brightness-0 invert">
                 </div>
                 <h3 class="text-2xl font-bold text-white">Ecrã Tátil</h3>
               </div>
@@ -774,25 +776,25 @@
       <div class="absolute left-0 right-0 bottom-[-5rem] flex justify-center items-center gap-8">
         <button class="thumbnail flex flex-col items-center" data-icon="FlexPuff">
           <div class="flex items-center justify-center w-10 h-10 rounded-full bg-[#1A6A72]/50 backdrop-blur-md p-1">
-            <img src="/IQOSILUMAV2/Icons/FlexPuff.svg" alt="Flex Puff" class="w-6 h-6 brightness-0 invert">
+            <img src="icons/puff.webp" alt="Flex Puff" class="w-6 h-6 brightness-0 invert">
           </div>
           <span class="text-xs text-white mt-1 font-normal opacity-70">Flex Puff</span>
         </button>
         <button class="thumbnail flex flex-col items-center" data-icon="FlexBattery">
           <div class="flex items-center justify-center w-10 h-10 rounded-full bg-[#1A6A72]/50 backdrop-blur-md p-1">
-            <img src="/IQOSILUMAV2/Icons/FlexBattery.svg" alt="Flex Battery" class="w-6 h-6 brightness-0 invert">
+            <img src="icons/battery.webp" alt="Flex Battery" class="w-6 h-6 brightness-0 invert">
           </div>
           <span class="text-xs text-white mt-1 font-normal opacity-70">Flex Battery</span>
         </button>
         <button class="thumbnail flex flex-col items-center" data-icon="ModoPausa">
           <div class="flex items-center justify-center w-10 h-10 rounded-full bg-[#1A6A72]/50 backdrop-blur-md p-1">
-            <img src="/IQOSILUMAV2/Icons/Modo Pausa.svg" alt="Modo Pausa" class="w-6 h-6 brightness-0 invert">
+            <img src="icons/pause.webp" alt="Modo Pausa" class="w-6 h-6 brightness-0 invert">
           </div>
           <span class="text-xs text-white mt-1 font-normal opacity-70">Modo Pausa</span>
         </button>
         <button class="thumbnail flex flex-col items-center" data-icon="EcraTatil">
           <div class="flex items-center justify-center w-10 h-10 rounded-full bg-[#1A6A72]/50 backdrop-blur-md p-1">
-            <img src="/IQOSILUMAV2/Icons/EcraTatil.svg" alt="Ecrã Tátil" class="w-6 h-6 brightness-0 invert">
+            <img src="icons/touch.webp" alt="Ecrã Tátil" class="w-6 h-6 brightness-0 invert">
           </div>
           <span class="text-xs text-white mt-1 font-normal opacity-70">Ecrã Tátil</span>
         </button>
@@ -1310,35 +1312,39 @@
         let isDragging = false;
         let currentOffset = 0;
 
-        // Inicializar posições dos cards
+        // Inicializar os cards - garantir que todos comecem escondidos
+        function initCards() {
+          cards.forEach((card) => {
+            card.classList.remove('active');
+            card.style.transform = 'translateX(0)';
+            card.style.opacity = '0';
+            card.style.scale = '0.8';
+            card.style.filter = 'blur(3px)';
+            card.style.visibility = 'hidden';
+          });
+        }
+
+        // Atualizar posição e visibilidade dos cards
         function updateCards() {
           cards.forEach((card, index) => {
-            let positionOffset = index - activeIndex;
-            const totalCards = cards.length;
-            if (positionOffset > totalCards / 2) {
-              positionOffset -= totalCards;
-            } else if (positionOffset < -totalCards / 2) {
-              positionOffset += totalCards;
-            }
-
-            const xPosition = positionOffset * cardWidth + currentOffset;
-            const isActive = index === activeIndex;
-            const distance = Math.abs(xPosition);
-
-            gsap.to(card, {
-              x: xPosition,
-              scale: isActive ? 1 : Math.max(0.8, 1 - (distance / cardWidth * 0.15)),
-              opacity: isActive ? 1 : Math.max(0.7, 1 - (distance / cardWidth * 0.2)),
-              filter: `blur(${Math.min(3, distance / cardWidth * 1.5)}px)`,
-              zIndex: isActive ? 100 : 100 - Math.abs(positionOffset) * 10,
-              duration: 0.6,
-              ease: 'power2.out',
-              overwrite: true
-            });
-
-            card.classList.toggle('active', isActive);
+            // Remover a classe active de todos
+            card.classList.remove('active');
+            // Esconder todos
+            card.style.visibility = 'hidden';
           });
 
+          // Ativar apenas o card atual
+          const activeCard = cards[activeIndex];
+          if (activeCard) {
+            activeCard.classList.add('active');
+            activeCard.style.transform = `translateX(${currentOffset}px)`;
+            activeCard.style.opacity = '1';
+            activeCard.style.scale = '1';
+            activeCard.style.filter = 'blur(0px)';
+            activeCard.style.visibility = 'visible';
+          }
+
+          // Atualizar miniaturas
           thumbnails.forEach((thumbnail, index) => {
             thumbnail.classList.toggle('active', index === activeIndex);
           });
@@ -1374,7 +1380,6 @@
             onDrag: function() {
               if (index === activeIndex) {
                 currentOffset = this.x;
-                updateCards();
               }
             },
             onDragEnd: function() {
@@ -1416,6 +1421,7 @@
         overlay.addEventListener('click', () => {
           container.classList.add('hidden');
           overlay.classList.remove('active');
+          initCards();
         });
 
         document.querySelectorAll('.close-btn').forEach(btn => {
@@ -1423,6 +1429,7 @@
             e.stopPropagation();
             container.classList.add('hidden');
             overlay.classList.remove('active');
+            initCards();
           });
         });
 
@@ -1460,6 +1467,7 @@
         // Inicializar estado - escondido por padrão
         container.classList.add('hidden');
         overlay.classList.remove('active');
+        initCards();
       });
     </script>
   </body>
