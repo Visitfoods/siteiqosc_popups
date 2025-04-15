@@ -98,7 +98,6 @@
         width: 30px;
         height: 30px;
         object-fit: contain;
-        filter: brightness(0) invert(1);
       }
 
       .feature-text {
@@ -391,6 +390,197 @@
         100% { transform: rotate(360deg); }
       }
 
+      /* Estilos para os popups de features */
+      .feature-popup {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+
+      .feature-popup.active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      /* Efeito de desfoque para o fundo quando os popups estão ativos */
+      body.popup-active {
+        overflow: hidden;
+      }
+
+      body.popup-active::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        backdrop-filter: blur(8px);
+        z-index: 1999;
+        pointer-events: none;
+      }
+
+      .popup-card {
+        width: 90%;
+        max-width: 400px;
+        background-image: linear-gradient(to bottom right, #2D8F9B, #045557);
+        border: 2px solid rgba(60, 171, 184, 0.6);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(8px);
+        padding: 24px;
+        position: relative;
+        font-family: 'IQOSSans-Regular', sans-serif;
+      }
+
+      .popup-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+
+      .popup-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 64px;
+        height: 64px;
+        background-color: rgba(26, 106, 114, 0.6);
+        backdrop-filter: blur(4px);
+        border-radius: 50%;
+        padding: 8px;
+        border: 2px solid rgba(92, 217, 232, 0.6);
+      }
+
+      .popup-icon img {
+        width: 40px;
+        height: 40px;
+        filter: brightness(0) invert(1);
+      }
+
+      /* Classe específica para os ícones SVG nos popups */
+      .popup-icon img.svg-icon {
+        filter: brightness(0) invert(1);
+        width: 40px;
+        height: 40px;
+      }
+
+      .popup-title {
+        font-size: 24px;
+        font-weight: bold;
+        color: white;
+        font-family: 'IQOSSans-Bold', sans-serif;
+      }
+
+      .popup-content {
+        background-color: rgba(26, 106, 114, 0.2);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(92, 217, 232, 0.2);
+        border-radius: 8px;
+        padding: 16px;
+        color: white;
+        line-height: 1.5;
+        font-family: 'IQOSSans-Regular', sans-serif;
+        height: 150px;
+        overflow-y: auto;
+        position: relative;
+      }
+
+      .popup-content p {
+        margin: 8px 0;
+      }
+
+      .popup-content .font-bold {
+        font-weight: bold;
+      }
+
+      .popup-content .mt-2 {
+        margin-top: 8px;
+      }
+
+      .popup-content .text-white\/70 {
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .popup-content .italic {
+        font-style: italic;
+      }
+
+      .close-popup-btn {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        width: 40px;
+        height: 40px;
+        background-color: rgba(26, 106, 114, 0.6);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(92, 217, 232, 0.3);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        line-height: 1;
+        font-family: 'IQOSSans-Regular', sans-serif;
+      }
+
+      .close-popup-btn:hover {
+        background-color: rgba(26, 106, 114, 0.8);
+      }
+
+      /* Seta indicadora de scroll */
+      .scroll-indicator {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 30px;
+        height: 30px;
+        background-color: rgba(26, 106, 114, 0.8);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: bounce 1.5s infinite;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+      }
+
+      .scroll-indicator::after {
+        content: "";
+        width: 12px;
+        height: 12px;
+        border-right: 3px solid white;
+        border-bottom: 3px solid white;
+        transform: rotate(45deg) translateY(-2px);
+      }
+
+      @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+          transform: translateX(-50%) translateY(0);
+        }
+        40% {
+          transform: translateX(-50%) translateY(-5px);
+        }
+        60% {
+          transform: translateX(-50%) translateY(-3px);
+        }
+      }
+
       /* Estilo para o slider de popups */
       .popup-slider {
         display: flex;
@@ -440,65 +630,6 @@
         height: 22px;
         filter: brightness(0) invert(1);
       }
-
-      /* Removendo os estilos dos botões de navegação já que não serão mais usados */
-      .popup-nav-btn {
-        display: none;
-      }
-
-      .popup-content {
-        background-color: rgba(26, 106, 114, 0.2);
-        backdrop-filter: blur(4px);
-        border: 1px solid rgba(92, 217, 232, 0.2);
-        border-radius: 8px;
-        padding: 16px;
-        color: white;
-        line-height: 1.5;
-        font-family: 'IQOSSans-Regular', sans-serif;
-        height: 150px;
-        overflow-y: auto;
-        position: relative;
-      }
-
-      /* Seta indicadora de scroll */
-      .scroll-indicator {
-        position: absolute;
-        bottom: 10px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 30px;
-        height: 30px;
-        background-color: rgba(26, 106, 114, 0.8);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        animation: bounce 1.5s infinite;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-        pointer-events: none;
-      }
-
-      .scroll-indicator::after {
-        content: "";
-        width: 12px;
-        height: 12px;
-        border-right: 3px solid white;
-        border-bottom: 3px solid white;
-        transform: rotate(45deg) translateY(-2px);
-      }
-
-      @keyframes bounce {
-        0%, 20%, 50%, 80%, 100% {
-          transform: translateX(-50%) translateY(0);
-        }
-        40% {
-          transform: translateX(-50%) translateY(-5px);
-        }
-        60% {
-          transform: translateX(-50%) translateY(-3px);
-        }
-      }
     </style>
   </head>
   <body>
@@ -521,7 +652,7 @@
     </div>
    
     <div class="features-container">
-      <div class="feature-item">
+      <div class="feature-item" data-feature="FlexBattery">
         <div class="feature-icon">
           <img src="icons/battery.webp" alt="Bateria">
         </div>
@@ -529,7 +660,7 @@
           <span class="feature-label">Flex Battery</span>
         </div>
       </div>
-      <div class="feature-item">
+      <div class="feature-item" data-feature="FlexPuff">
         <div class="feature-icon">
           <img src="icons/puff.webp" alt="Puffs">
         </div>
@@ -537,7 +668,7 @@
           <span class="feature-label">Flex Puff</span>
         </div>
       </div>
-      <div class="feature-item">
+      <div class="feature-item" data-feature="ModoPausa">
         <div class="feature-icon">
           <img src="icons/pause.webp" alt="Tempo">
         </div>
@@ -545,12 +676,149 @@
           <span class="feature-label">Modo Pausa</span>
         </div>
       </div>
-      <div class="feature-item">
+      <div class="feature-item" data-feature="EcraTatil">
         <div class="feature-icon">
           <img src="icons/touch.webp" alt="Touch">
         </div>
         <div class="feature-text">
           <span class="feature-label">Ecrã Tátil</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Popups de Features -->
+    <!-- Popup: Flex Battery -->
+    <div id="FlexBattery-popup" class="feature-popup" data-index="0">
+      <div class="popup-card">
+        <div class="popup-header">
+          <div class="popup-icon">
+            <img src="icons/iconspopups/FlexBattery.svg" alt="Flex Battery" class="svg-icon">
+          </div>
+          <h3 class="popup-title">Flex Battery</h3>
+        </div>
+        <button class="close-popup-btn" aria-label="Fechar">×</button>
+        <div class="popup-content">
+          <p>Já é possível adaptar a bateria do seu dispositivo com o FlexBattery:</p>
+          <p class="mt-2"><span class="font-bold">Modo Eco</span><br>Permite prolongar o tempo de vida útil da bateria do equipamento até um ano**;</p>
+          <p class="mt-2">ou</p>
+          <p class="mt-2"><span class="font-bold">Modo Desempenho</span><br>Até 3 utilizações consecutivas**</p>
+          <div class="scroll-indicator"></div>
+        </div>
+        <div class="popup-slider-controls">
+          <div class="popup-slider-dots">
+            <div class="popup-slider-dot active" data-index="0">
+              <img src="icons/iconspopups/FlexBattery.svg" alt="Flex Battery">
+            </div>
+            <div class="popup-slider-dot" data-index="1">
+              <img src="icons/iconspopups/FlexPuff.svg" alt="Flex Puff">
+            </div>
+            <div class="popup-slider-dot" data-index="2">
+              <img src="icons/iconspopups/ModoPausa.svg" alt="Modo Pausa">
+            </div>
+            <div class="popup-slider-dot" data-index="3">
+              <img src="icons/iconspopups/EcraTatil.svg" alt="Ecrã Tátil">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Popup: Flex Puff -->
+    <div id="FlexPuff-popup" class="feature-popup" data-index="1">
+      <div class="popup-card">
+        <div class="popup-header">
+          <div class="popup-icon">
+            <img src="icons/iconspopups/FlexPuff.svg" alt="Flex Puff" class="svg-icon">
+          </div>
+          <h3 class="popup-title">Flex Puff</h3>
+        </div>
+        <button class="close-popup-btn" aria-label="Fechar">×</button>
+        <div class="popup-content">
+          <p>A funcionalidade Flexpuff adapta-se de forma inteligente ao ritmo de utilização, podendo permitir até 4 aspirações extra, para uma experiência de utilização máxima de até 6 minutos*.</p>
+          <div class="scroll-indicator"></div>
+        </div>
+        <div class="popup-slider-controls">
+          <div class="popup-slider-dots">
+            <div class="popup-slider-dot" data-index="0">
+              <img src="icons/iconspopups/FlexBattery.svg" alt="Flex Battery">
+            </div>
+            <div class="popup-slider-dot active" data-index="1">
+              <img src="icons/iconspopups/FlexPuff.svg" alt="Flex Puff">
+            </div>
+            <div class="popup-slider-dot" data-index="2">
+              <img src="icons/iconspopups/ModoPausa.svg" alt="Modo Pausa">
+            </div>
+            <div class="popup-slider-dot" data-index="3">
+              <img src="icons/iconspopups/EcraTatil.svg" alt="Ecrã Tátil">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Popup: Modo Pausa -->
+    <div id="ModoPausa-popup" class="feature-popup" data-index="2">
+      <div class="popup-card">
+        <div class="popup-header">
+          <div class="popup-icon">
+            <img src="icons/iconspopups/ModoPausa.svg" alt="Modo Pausa" class="svg-icon">
+          </div>
+          <h3 class="popup-title">Modo Pausa</h3>
+        </div>
+        <button class="close-popup-btn" aria-label="Fechar">×</button>
+        <div class="popup-content">
+          <p>Já é possível interromper e recomeçar a utilização até 8 minutos, sem que o SMARTCORE STICK™ fique inutilizado, com o novo Modo Pausa.</p>
+          <p class="mt-2 text-white/70 italic">Apenas disponível no Modo Desempenho</p>
+          <div class="scroll-indicator"></div>
+        </div>
+        <div class="popup-slider-controls">
+          <div class="popup-slider-dots">
+            <div class="popup-slider-dot" data-index="0">
+              <img src="icons/iconspopups/FlexBattery.svg" alt="Flex Battery">
+            </div>
+            <div class="popup-slider-dot" data-index="1">
+              <img src="icons/iconspopups/FlexPuff.svg" alt="Flex Puff">
+            </div>
+            <div class="popup-slider-dot active" data-index="2">
+              <img src="icons/iconspopups/ModoPausa.svg" alt="Modo Pausa">
+            </div>
+            <div class="popup-slider-dot" data-index="3">
+              <img src="icons/iconspopups/EcraTatil.svg" alt="Ecrã Tátil">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Popup: Ecrã Tátil -->
+    <div id="EcraTatil-popup" class="feature-popup" data-index="3">
+      <div class="popup-card">
+        <div class="popup-header">
+          <div class="popup-icon">
+            <img src="icons/iconspopups/EcraTatil.svg" alt="Ecrã Tátil" class="svg-icon">
+          </div>
+          <h3 class="popup-title">Ecrã Tátil</h3>
+        </div>
+        <button class="close-popup-btn" aria-label="Fechar">×</button>
+        <div class="popup-content">
+          <p>O novo Ecrã Tátil permite acompanhar todas as informações relativas ao estado do dispositivo e personalizar a sua utilização.</p>
+          <div class="scroll-indicator"></div>
+        </div>
+        <div class="popup-slider-controls">
+          <div class="popup-slider-dots">
+            <div class="popup-slider-dot" data-index="0">
+              <img src="icons/iconspopups/FlexBattery.svg" alt="Flex Battery">
+            </div>
+            <div class="popup-slider-dot" data-index="1">
+              <img src="icons/iconspopups/FlexPuff.svg" alt="Flex Puff">
+            </div>
+            <div class="popup-slider-dot" data-index="2">
+              <img src="icons/iconspopups/ModoPausa.svg" alt="Modo Pausa">
+            </div>
+            <div class="popup-slider-dot active" data-index="3">
+              <img src="icons/iconspopups/EcraTatil.svg" alt="Ecrã Tátil">
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1502,187 +1770,6 @@
         });
       });
     </script>
-
-    <!-- Popups de Features -->
-    <!-- Popup: Aquecimento Indutivo -->
-    <div id="AquecimentoIndutivo-popup" class="feature-popup" data-index="0">
-      <div class="popup-card">
-        <div class="popup-header">
-          <div class="popup-icon">
-            <img src="icons/iconspopups/AquecimentoIndutivo.svg" alt="Aquecimento Indutivo" class="svg-icon">
-          </div>
-          <h3 class="popup-title">Aquecimento Indutivo</h3>
-        </div>
-        <button class="close-popup-btn" aria-label="Fechar">×</button>
-        <div class="popup-content">
-          <p>O Smartcore Induction System™ aquece o tabaco por indução sem o queimar, contando com uma lâmina de aquecimento no interior do dispositivo.</p>
-          <div class="scroll-indicator"></div>
-        </div>
-        <div class="popup-slider-controls">
-          <div class="popup-slider-dots">
-            <div class="popup-slider-dot active" data-index="0">
-              <img src="icons/iconspopups/AquecimentoIndutivo.svg" alt="Aquecimento Indutivo">
-            </div>
-            <div class="popup-slider-dot" data-index="1">
-              <img src="icons/iconspopups/LigarAutomatico.svg" alt="Ligar Automático">
-            </div>
-            <div class="popup-slider-dot" data-index="2">
-              <img src="icons/iconspopups/AromasIntactos.svg" alt="Aromas Intactos">
-            </div>
-            <div class="popup-slider-dot" data-index="3">
-              <img src="icons/iconspopups/CargaRapida.svg" alt="Carga Rápida">
-            </div>
-            <div class="popup-slider-dot" data-index="4">
-              <img src="icons/iconspopups/EstojoCarregamento.svg" alt="Estojo Carregamento">
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Popup: Ligar Automático -->
-    <div id="LigarAutomatico-popup" class="feature-popup" data-index="1">
-      <div class="popup-card">
-        <div class="popup-header">
-          <div class="popup-icon">
-            <img src="icons/iconspopups/LigarAutomatico.svg" alt="Ligar Automático" class="svg-icon">
-          </div>
-          <h3 class="popup-title">Ligar Automático</h3>
-        </div>
-        <button class="close-popup-btn" aria-label="Fechar">×</button>
-        <div class="popup-content">
-          <p>Sem necessidade de carregar em botões. O Dipositivo liga-se e aquece quando inserimos o stick de tabaco e desliga-se automaticamente quando este é retirado.</p>
-          <div class="scroll-indicator"></div>
-        </div>
-        <div class="popup-slider-controls">
-          <div class="popup-slider-dots">
-            <div class="popup-slider-dot" data-index="0">
-              <img src="icons/iconspopups/AquecimentoIndutivo.svg" alt="Aquecimento Indutivo">
-            </div>
-            <div class="popup-slider-dot active" data-index="1">
-              <img src="icons/iconspopups/LigarAutomatico.svg" alt="Ligar Automático">
-            </div>
-            <div class="popup-slider-dot" data-index="2">
-              <img src="icons/iconspopups/AromasIntactos.svg" alt="Aromas Intactos">
-            </div>
-            <div class="popup-slider-dot" data-index="3">
-              <img src="icons/iconspopups/CargaRapida.svg" alt="Carga Rápida">
-            </div>
-            <div class="popup-slider-dot" data-index="4">
-              <img src="icons/iconspopups/EstojoCarregamento.svg" alt="Estojo Carregamento">
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Popup: Aromas Intactos -->
-    <div id="AromasIntactos-popup" class="feature-popup" data-index="2">
-      <div class="popup-card">
-        <div class="popup-header">
-          <div class="popup-icon">
-            <img src="icons/iconspopups/AromasIntactos.svg" alt="Aromas Intactos" class="svg-icon">
-          </div>
-          <h3 class="popup-title">Aromas Intactos</h3>
-        </div>
-        <button class="close-popup-btn" aria-label="Fechar">×</button>
-        <div class="popup-content">
-          <p>O IQOS ILUMA PRIME proporciona uma experiência sem alteração de sabor desde a primeira à última utilização e sem odor em comparação com o cigarro.</p>
-          <div class="scroll-indicator"></div>
-        </div>
-        <div class="popup-slider-controls">
-          <div class="popup-slider-dots">
-            <div class="popup-slider-dot" data-index="0">
-              <img src="icons/iconspopups/AquecimentoIndutivo.svg" alt="Aquecimento Indutivo">
-            </div>
-            <div class="popup-slider-dot" data-index="1">
-              <img src="icons/iconspopups/LigarAutomatico.svg" alt="Ligar Automático">
-            </div>
-            <div class="popup-slider-dot active" data-index="2">
-              <img src="icons/iconspopups/AromasIntactos.svg" alt="Aromas Intactos">
-            </div>
-            <div class="popup-slider-dot" data-index="3">
-              <img src="icons/iconspopups/CargaRapida.svg" alt="Carga Rápida">
-            </div>
-            <div class="popup-slider-dot" data-index="4">
-              <img src="icons/iconspopups/EstojoCarregamento.svg" alt="Estojo Carregamento">
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Popup: Carga Rápida -->
-    <div id="CargaRapida-popup" class="feature-popup" data-index="3">
-      <div class="popup-card">
-        <div class="popup-header">
-          <div class="popup-icon">
-            <img src="icons/iconspopups/CargaRapida.svg" alt="Carga Rápida" class="svg-icon">
-          </div>
-          <h3 class="popup-title">Carga Rápida</h3>
-        </div>
-        <button class="close-popup-btn" aria-label="Fechar">×</button>
-        <div class="popup-content">
-          <p>Com apenas 10 minutos de carregamento, o Estojo de Carregamento permite realizar uma utilização completa.</p>
-          <div class="scroll-indicator"></div>
-        </div>
-        <div class="popup-slider-controls">
-          <div class="popup-slider-dots">
-            <div class="popup-slider-dot" data-index="0">
-              <img src="icons/iconspopups/AquecimentoIndutivo.svg" alt="Aquecimento Indutivo">
-            </div>
-            <div class="popup-slider-dot" data-index="1">
-              <img src="icons/iconspopups/LigarAutomatico.svg" alt="Ligar Automático">
-            </div>
-            <div class="popup-slider-dot" data-index="2">
-              <img src="icons/iconspopups/AromasIntactos.svg" alt="Aromas Intactos">
-            </div>
-            <div class="popup-slider-dot active" data-index="3">
-              <img src="icons/iconspopups/CargaRapida.svg" alt="Carga Rápida">
-            </div>
-            <div class="popup-slider-dot" data-index="4">
-              <img src="icons/iconspopups/EstojoCarregamento.svg" alt="Estojo Carregamento">
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Popup: Estojo Carregamento -->
-    <div id="EstojoCarregamento-popup" class="feature-popup" data-index="4">
-      <div class="popup-card">
-        <div class="popup-header">
-          <div class="popup-icon">
-            <img src="icons/iconspopups/EstojoCarregamento.svg" alt="Estojo Carregamento" class="svg-icon">
-          </div>
-          <h3 class="popup-title">Estojo Carregamento</h3>
-        </div>
-        <button class="close-popup-btn" aria-label="Fechar">×</button>
-        <div class="popup-content">
-          <p>O estojo permite até 20* utilizações, podendo carregar-se por USB-C. A sua bateria dura até ao final do dia e o dispositivo permanece sempre protegido.</p>
-          <div class="scroll-indicator"></div>
-        </div>
-        <div class="popup-slider-controls">
-          <div class="popup-slider-dots">
-            <div class="popup-slider-dot" data-index="0">
-              <img src="icons/iconspopups/AquecimentoIndutivo.svg" alt="Aquecimento Indutivo">
-            </div>
-            <div class="popup-slider-dot" data-index="1">
-              <img src="icons/iconspopups/LigarAutomatico.svg" alt="Ligar Automático">
-            </div>
-            <div class="popup-slider-dot" data-index="2">
-              <img src="icons/iconspopups/AromasIntactos.svg" alt="Aromas Intactos">
-            </div>
-            <div class="popup-slider-dot" data-index="3">
-              <img src="icons/iconspopups/CargaRapida.svg" alt="Carga Rápida">
-            </div>
-            <div class="popup-slider-dot active" data-index="4">
-              <img src="icons/iconspopups/EstojoCarregamento.svg" alt="Estojo Carregamento">
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <script src="js/ilumaprime-one.js"></script>
   </body>

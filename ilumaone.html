@@ -483,49 +483,44 @@
         position: relative;
       }
 
-      .popup-content p {
-        margin: 8px 0;
-      }
-
-      .popup-content .font-bold {
-        font-weight: bold;
-      }
-
-      .popup-content .mt-2 {
-        margin-top: 8px;
-      }
-
-      .popup-content .text-white\/70 {
-        color: rgba(255, 255, 255, 0.7);
-      }
-
-      .popup-content .italic {
-        font-style: italic;
-      }
-
-      .close-popup-btn {
+      /* Seta indicadora de scroll */
+      .scroll-indicator {
         position: absolute;
-        top: 16px;
-        right: 16px;
-        width: 40px;
-        height: 40px;
-        background-color: rgba(26, 106, 114, 0.6);
-        backdrop-filter: blur(4px);
-        border: 1px solid rgba(92, 217, 232, 0.3);
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 30px;
+        height: 30px;
+        background-color: rgba(26, 106, 114, 0.8);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: white;
-        font-size: 24px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-        line-height: 1;
-        font-family: 'IQOSSans-Regular', sans-serif;
+        animation: bounce 1.5s infinite;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
       }
 
-      .close-popup-btn:hover {
-        background-color: rgba(26, 106, 114, 0.8);
+      .scroll-indicator::after {
+        content: "";
+        width: 12px;
+        height: 12px;
+        border-right: 3px solid white;
+        border-bottom: 3px solid white;
+        transform: rotate(45deg) translateY(-2px);
+      }
+
+      @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+          transform: translateX(-50%) translateY(0);
+        }
+        40% {
+          transform: translateX(-50%) translateY(-5px);
+        }
+        60% {
+          transform: translateX(-50%) translateY(-3px);
+        }
       }
 
       /* Estilo para o slider de popups */
@@ -578,49 +573,46 @@
         filter: brightness(0) invert(1);
       }
 
-      /* Removendo os estilos dos botões de navegação já que não serão mais usados */
-      .popup-nav-btn {
-        display: none;
+      /* Efeito de desfoque para o fundo quando os popups estão ativos */
+      body.popup-active {
+        overflow: hidden;
       }
 
-      /* Seta indicadora de scroll */
-      .scroll-indicator {
+      body.popup-active::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        backdrop-filter: blur(8px);
+        z-index: 1999;
+        pointer-events: none;
+      }
+
+      .close-popup-btn {
         position: absolute;
-        bottom: 10px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 30px;
-        height: 30px;
-        background-color: rgba(26, 106, 114, 0.8);
+        top: 16px;
+        right: 16px;
+        width: 40px;
+        height: 40px;
+        background-color: rgba(26, 106, 114, 0.6);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(92, 217, 232, 0.3);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        animation: bounce 1.5s infinite;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-        pointer-events: none;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        line-height: 1;
+        font-family: 'IQOSSans-Regular', sans-serif;
       }
 
-      .scroll-indicator::after {
-        content: "";
-        width: 12px;
-        height: 12px;
-        border-right: 3px solid white;
-        border-bottom: 3px solid white;
-        transform: rotate(45deg) translateY(-2px);
-      }
-
-      @keyframes bounce {
-        0%, 20%, 50%, 80%, 100% {
-          transform: translateX(-50%) translateY(0);
-        }
-        40% {
-          transform: translateX(-50%) translateY(-5px);
-        }
-        60% {
-          transform: translateX(-50%) translateY(-3px);
-        }
+      .close-popup-btn:hover {
+        background-color: rgba(26, 106, 114, 0.8);
       }
     </style>
   </head>
@@ -665,90 +657,54 @@
     </div>
 
     <!-- Popups de Features -->
-    <!-- Popup: Aquecimento Indutivo -->
-    <div id="AquecimentoIndutivo-popup" class="feature-popup" data-index="0">
+    <!-- Popup: Flex Puff -->
+    <div id="FlexPuff-popup" class="feature-popup" data-index="0">
       <div class="popup-card">
         <div class="popup-header">
           <div class="popup-icon">
-            <img src="icons/iconspopups/AquecimentoIndutivo.svg" alt="Aquecimento Indutivo" class="svg-icon">
+            <img src="icons/iconspopups/FlexPuff.svg" alt="Flex Puff" class="svg-icon">
           </div>
-          <h3 class="popup-title">Aquecimento Indutivo</h3>
+          <h3 class="popup-title">Flex Puff</h3>
         </div>
         <button class="close-popup-btn" aria-label="Fechar">×</button>
         <div class="popup-content">
-          <p>O Smartcore Induction System™ aquece o tabaco por indução sem o queimar, contando com uma lâmina de aquecimento no interior do dispositivo.</p>
+          <p>A funcionalidade Flexpuff adapta-se de forma inteligente ao ritmo de utilização, podendo permitir até 4 aspirações extra, para uma experiência de utilização máxima de até 6 minutos*.</p>
           <div class="scroll-indicator"></div>
         </div>
         <div class="popup-slider-controls">
           <div class="popup-slider-dots">
             <div class="popup-slider-dot active" data-index="0">
-              <img src="icons/iconspopups/AquecimentoIndutivo.svg" alt="Aquecimento Indutivo">
+              <img src="icons/iconspopups/FlexPuff.svg" alt="Flex Puff">
             </div>
             <div class="popup-slider-dot" data-index="1">
-              <img src="icons/iconspopups/LigarAutomatico.svg" alt="Ligar Automático">
-            </div>
-            <div class="popup-slider-dot" data-index="2">
-              <img src="icons/iconspopups/AromasIntactos.svg" alt="Aromas Intactos">
+              <img src="icons/iconspopups/InicioAutomatico.svg" alt="Início Automático">
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Popup: Ligar Automático -->
-    <div id="LigarAutomatico-popup" class="feature-popup" data-index="1">
+    <!-- Popup: Início Automático -->
+    <div id="InicioAutomatico-popup" class="feature-popup" data-index="1">
       <div class="popup-card">
         <div class="popup-header">
           <div class="popup-icon">
-            <img src="icons/iconspopups/LigarAutomatico.svg" alt="Ligar Automático" class="svg-icon">
+            <img src="icons/iconspopups/InicioAutomatico.svg" alt="Início Automático" class="svg-icon">
           </div>
-          <h3 class="popup-title">Ligar Automático</h3>
+          <h3 class="popup-title">Início Automático</h3>
         </div>
         <button class="close-popup-btn" aria-label="Fechar">×</button>
         <div class="popup-content">
-          <p>Sem necessidade de carregar em botões. O Dipositivo liga-se e aquece quando inserimos o stick de tabaco e desliga-se automaticamente quando este é retirado.</p>
+          <p>O ILUMA ONE permite iniciar a utilização automaticamente ao inspirar, sem necessidade de premir botões.</p>
           <div class="scroll-indicator"></div>
         </div>
         <div class="popup-slider-controls">
           <div class="popup-slider-dots">
             <div class="popup-slider-dot" data-index="0">
-              <img src="icons/iconspopups/AquecimentoIndutivo.svg" alt="Aquecimento Indutivo">
+              <img src="icons/iconspopups/FlexPuff.svg" alt="Flex Puff">
             </div>
             <div class="popup-slider-dot active" data-index="1">
-              <img src="icons/iconspopups/LigarAutomatico.svg" alt="Ligar Automático">
-            </div>
-            <div class="popup-slider-dot" data-index="2">
-              <img src="icons/iconspopups/AromasIntactos.svg" alt="Aromas Intactos">
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Popup: Aromas Intactos -->
-    <div id="AromasIntactos-popup" class="feature-popup" data-index="2">
-      <div class="popup-card">
-        <div class="popup-header">
-          <div class="popup-icon">
-            <img src="icons/iconspopups/AromasIntactos.svg" alt="Aromas Intactos" class="svg-icon">
-          </div>
-          <h3 class="popup-title">Aromas Intactos</h3>
-        </div>
-        <button class="close-popup-btn" aria-label="Fechar">×</button>
-        <div class="popup-content">
-          <p>O IQOS ILUMA ONE proporciona uma experiência sem alteração de sabor desde a primeira à última utilização e sem odor em comparação com o cigarro.</p>
-          <div class="scroll-indicator"></div>
-        </div>
-        <div class="popup-slider-controls">
-          <div class="popup-slider-dots">
-            <div class="popup-slider-dot" data-index="0">
-              <img src="icons/iconspopups/AquecimentoIndutivo.svg" alt="Aquecimento Indutivo">
-            </div>
-            <div class="popup-slider-dot" data-index="1">
-              <img src="icons/iconspopups/LigarAutomatico.svg" alt="Ligar Automático">
-            </div>
-            <div class="popup-slider-dot active" data-index="2">
-              <img src="icons/iconspopups/AromasIntactos.svg" alt="Aromas Intactos">
+              <img src="icons/iconspopups/InicioAutomatico.svg" alt="Início Automático">
             </div>
           </div>
         </div>
@@ -1301,7 +1257,6 @@
     </script>
 
     <script>
-      // Controle dos popups de features
       document.addEventListener('DOMContentLoaded', function() {
         // Selecionar todos os itens de feature
         const featureItems = document.querySelectorAll('.feature-item');
