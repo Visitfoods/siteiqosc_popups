@@ -7,6 +7,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.0.0/dist/aframe-extras.min.js"></script>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- GSAP CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <!-- GSAP Draggable Plugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/Draggable.min.js"></script>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/orientation.css">
     <style>
@@ -78,6 +84,7 @@
         border-radius: 12px;
         transition: transform 0.3s ease;
         width: 60px;
+        cursor: pointer;
       }
 
       .feature-item:hover {
@@ -389,6 +396,95 @@
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
       }
+
+      /* Estilos para a animação "snake" */
+      @keyframes snake {
+        0% {
+          stroke-dashoffset: 0;
+        }
+        100% {
+          stroke-dashoffset: 1000;
+        }
+      }
+
+      /* Garantir que o contêiner do carrossel seja relativo */
+      #popup-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 120;
+      }
+
+      /* Estilizar os cards */
+      .popup-card {
+        position: absolute;
+        width: 400px;
+        transform: translateX(0);
+        opacity: 1;
+        scale: 1;
+        filter: blur(0px);
+        z-index: 10;
+        pointer-events: auto;
+        transition: transform 0.6s ease-out, opacity 0.6s ease-out, scale 0.6s ease-out, filter 0.6s ease-out;
+      }
+
+      .popup-card:not(.active) {
+        scale: 0.8;
+        opacity: 0.7;
+        filter: blur(3px);
+        pointer-events: none;
+      }
+
+      /* Estilizar o SVG da borda */
+      .popup-card.active .snake-border {
+        animation: snake 8s linear infinite;
+      }
+
+      /* Overlay de fundo */
+      #popup-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(4px);
+        z-index: 100;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease-out;
+      }
+
+      #popup-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      /* Miniaturas */
+      .thumbnail {
+        cursor: pointer;
+        transition: all 0.3s ease-out;
+      }
+
+      .thumbnail.active {
+        transform: scale(1.1);
+        opacity: 1 !important;
+      }
+
+      .thumbnail:not(.active) {
+        opacity: 0.7;
+      }
+
+      /* Setas de navegação */
+      .nav-arrow {
+        transition: color 0.3s ease-out;
+      }
+
+      .nav-arrow:hover {
+        color: #d1d5db;
+      }
     </style>
   </head>
   <body>
@@ -409,7 +505,7 @@
     </div>
    
     <div class="features-container">
-      <div class="feature-item">
+      <div class="feature-item" data-icon="FlexBattery">
         <div class="feature-icon">
           <img src="icons/battery.webp" alt="Bateria">
         </div>
@@ -417,7 +513,7 @@
           <span class="feature-label">Flex Battery</span>
         </div>
       </div>
-      <div class="feature-item">
+      <div class="feature-item" data-icon="FlexPuff">
         <div class="feature-icon">
           <img src="icons/puff.webp" alt="Puffs">
         </div>
@@ -425,7 +521,7 @@
           <span class="feature-label">Flex Puff</span>
         </div>
       </div>
-      <div class="feature-item">
+      <div class="feature-item" data-icon="ModoPausa">
         <div class="feature-icon">
           <img src="icons/pause.webp" alt="Tempo">
         </div>
@@ -433,7 +529,7 @@
           <span class="feature-label">Modo Pausa</span>
         </div>
       </div>
-      <div class="feature-item">
+      <div class="feature-item" data-icon="EcraTatil">
         <div class="feature-icon">
           <img src="icons/touch.webp" alt="Touch">
         </div>
@@ -493,6 +589,205 @@
     </a-scene>
 
     <div class="overlay-gradient"></div>
+    
+    <!-- Overlay -->
+    <div id="popup-overlay"></div>
+
+    <!-- Contêiner do carrossel -->
+    <div id="popup-container" class="flex items-center justify-center mx-auto hidden">
+      <!-- Cards do carrossel -->
+      <div class="relative w-full h-full flex items-center justify-center">
+        <!-- Card: Flex Puff -->
+        <div class="popup-card" data-icon="FlexPuff">
+          <div class="w-full bg-gradient-to-br from-[#2D8F9B] to-[#045557] border-2 border-[#3CABB8]/60 rounded-xl backdrop-blur-xl p-6 shadow-2xl">
+            <div class="relative">
+              <div class="flex items-center gap-4 mb-5">
+                <div class="flex items-center justify-center w-16 h-16 rounded-full bg-[#1A6A72]/60 backdrop-blur-md p-2 ring-2 ring-[#5CD9E8]/60">
+                  <img src="/IQOSILUMAV2/Icons/FlexPuff.svg" alt="Flex Puff" class="w-10 h-10 brightness-0 invert">
+                </div>
+                <h3 class="text-2xl font-bold text-white">Flex Puff</h3>
+              </div>
+              <button class="close-btn absolute top-0 right-0 flex items-center justify-center w-10 h-10 rounded-full bg-[#1A6A72]/60 backdrop-blur-md hover:bg-[#1A6A72] transition-colors border border-[#5CD9E8]/30" aria-label="Fechar">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <div class="text-base text-white leading-relaxed bg-[#1A6A72]/20 backdrop-blur-sm p-4 rounded-lg border border-[#5CD9E8]/20">
+                <p>A funcionalidade Flexpuff adapta-se de forma inteligente ao ritmo de utilização, podendo permitir até 4 aspirações extra, para uma experiência de utilização máxima de até 6 minutos*.</p>
+              </div>
+              <svg class="snake-border absolute inset-[-2px] w-[calc(100%+4px)] h-[calc(100%+4px)] z-[-1]" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="snakeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#5CD9E8" stop-opacity="1"/>
+                    <stop offset="100%" stop-color="#5CD9E8" stop-opacity="0"/>
+                  </linearGradient>
+                  <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="8" result="blur" />
+                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                  </filter>
+                </defs>
+                <rect x="2" y="2" width="996" height="996" fill="none" stroke="url(#snakeGradient)" stroke-width="4" stroke-dasharray="1000" stroke-linecap="round" rx="16" ry="16" filter="url(#glow)" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card: Flex Battery -->
+        <div class="popup-card" data-icon="FlexBattery">
+          <div class="w-full bg-gradient-to-br from-[#2D8F9B] to-[#045557] border-2 border-[#3CABB8]/60 rounded-xl backdrop-blur-xl p-6 shadow-2xl">
+            <div class="relative">
+              <div class="flex items-center gap-4 mb-5">
+                <div class="flex items-center justify-center w-16 h-16 rounded-full bg-[#1A6A72]/60 backdrop-blur-md p-2 ring-2 ring-[#5CD9E8]/60">
+                  <img src="/IQOSILUMAV2/Icons/FlexBattery.svg" alt="Flex Battery" class="w-10 h-10 brightness-0 invert">
+                </div>
+                <h3 class="text-2xl font-bold text-white">Flex Battery</h3>
+              </div>
+              <button class="close-btn absolute top-0 right-0 flex items-center justify-center w-10 h-10 rounded-full bg-[#1A6A72]/60 backdrop-blur-md hover:bg-[#1A6A72] transition-colors border border-[#5CD9E8]/30" aria-label="Fechar">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <div class="text-base text-white leading-relaxed bg-[#1A6A72]/20 backdrop-blur-sm p-4 rounded-lg border border-[#5CD9E8]/20">
+                <p>Já é possível adaptar a bateria do seu dispositivo com o FlexBattery:</p>
+                <p class="mt-2"><span class="font-bold">Modo Eco</span><br>Permite prolongar o tempo de vida útil da bateria do equipamento até um ano**;</p>
+                <p class="mt-2">ou</p>
+                <p class="mt-2"><span class="font-bold">Modo Desempenho</span><br>Até 3 utilizações consecutivas**</p>
+              </div>
+              <svg class="snake-border absolute inset-[-2px] w-[calc(100%+4px)] h-[calc(100%+4px)] z-[-1]" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="snakeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#5CD9E8" stop-opacity="1"/>
+                    <stop offset="100%" stop-color="#5CD9E8" stop-opacity="0"/>
+                  </linearGradient>
+                  <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="8" result="blur" />
+                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                  </filter>
+                </defs>
+                <rect x="2" y="2" width="996" height="996" fill="none" stroke="url(#snakeGradient)" stroke-width="4" stroke-dasharray="1000" stroke-linecap="round" rx="16" ry="16" filter="url(#glow)" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card: Modo Pausa -->
+        <div class="popup-card" data-icon="ModoPausa">
+          <div class="w-full bg-gradient-to-br from-[#2D8F9B] to-[#045557] border-2 border-[#3CABB8]/60 rounded-xl backdrop-blur-xl p-6 shadow-2xl">
+            <div class="relative">
+              <div class="flex items-center gap-4 mb-5">
+                <div class="flex items-center justify-center w-16 h-16 rounded-full bg-[#1A6A72]/60 backdrop-blur-md p-2 ring-2 ring-[#5CD9E8]/60">
+                  <img src="/IQOSILUMAV2/Icons/Modo Pausa.svg" alt="Modo Pausa" class="w-10 h-10 brightness-0 invert">
+                </div>
+                <h3 class="text-2xl font-bold text-white">Modo Pausa</h3>
+              </div>
+              <button class="close-btn absolute top-0 right-0 flex items-center justify-center w-10 h-10 rounded-full bg-[#1A6A72]/60 backdrop-blur-md hover:bg-[#1A6A72] transition-colors border border-[#5CD9E8]/30" aria-label="Fechar">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <div class="text-base text-white leading-relaxed bg-[#1A6A72]/20 backdrop-blur-sm p-4 rounded-lg border border-[#5CD9E8]/20">
+                <p>Já é possível interromper e recomeçar a utilização até 8 minutos, sem que o SMARTCORE STICK™ fique inutilizado, com o novo Modo Pausa.</p>
+                <p class="mt-2 text-white/70 italic">Apenas disponível no Modo Desempenho</p>
+              </div>
+              <svg class="snake-border absolute inset-[-2px] w-[calc(100%+4px)] h-[calc(100%+4px)] z-[-1]" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="snakeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#5CD9E8" stop-opacity="1"/>
+                    <stop offset="100%" stop-color="#5CD9E8" stop-opacity="0"/>
+                  </linearGradient>
+                  <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="8" result="blur" />
+                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                  </filter>
+                </defs>
+                <rect x="2" y="2" width="996" height="996" fill="none" stroke="url(#snakeGradient)" stroke-width="4" stroke-dasharray="1000" stroke-linecap="round" rx="16" ry="16" filter="url(#glow)" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card: Ecrã Tátil -->
+        <div class="popup-card" data-icon="EcraTatil">
+          <div class="w-full bg-gradient-to-br from-[#2D8F9B] to-[#045557] border-2 border-[#3CABB8]/60 rounded-xl backdrop-blur-xl p-6 shadow-2xl">
+            <div class="relative">
+              <div class="flex items-center gap-4 mb-5">
+                <div class="flex items-center justify-center w-16 h-16 rounded-full bg-[#1A6A72]/60 backdrop-blur-md p-2 ring-2 ring-[#5CD9E8]/60">
+                  <img src="/IQOSILUMAV2/Icons/EcraTatil.svg" alt="Ecrã Tátil" class="w-10 h-10 brightness-0 invert">
+                </div>
+                <h3 class="text-2xl font-bold text-white">Ecrã Tátil</h3>
+              </div>
+              <button class="close-btn absolute top-0 right-0 flex items-center justify-center w-10 h-10 rounded-full bg-[#1A6A72]/60 backdrop-blur-md hover:bg-[#1A6A72] transition-colors border border-[#5CD9E8]/30" aria-label="Fechar">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <div class="text-base text-white leading-relaxed bg-[#1A6A72]/20 backdrop-blur-sm p-4 rounded-lg border border-[#5CD9E8]/20">
+                <p>O novo Ecrã Tátil permite acompanhar todas as informações relativas ao estado do dispositivo e personalizar a sua utilização.</p>
+              </div>
+              <svg class="snake-border absolute inset-[-2px] w-[calc(100%+4px)] h-[calc(100%+4px)] z-[-1]" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="snakeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#5CD9E8" stop-opacity="1"/>
+                    <stop offset="100%" stop-color="#5CD9E8" stop-opacity="0"/>
+                  </linearGradient>
+                  <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="8" result="blur" />
+                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                  </filter>
+                </defs>
+                <rect x="2" y="2" width="996" height="996" fill="none" stroke="url(#snakeGradient)" stroke-width="4" stroke-dasharray="1000" stroke-linecap="round" rx="16" ry="16" filter="url(#glow)" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Áreas de navegação -->
+        <button id="nav-prev" class="absolute left-0 top-0 bottom-0 w-1/4 h-full z-[15] bg-transparent focus:outline-none" aria-label="Popup anterior"></button>
+        <button id="nav-next" class="absolute right-0 top-0 bottom-0 w-1/4 h-full z-[15] bg-transparent focus:outline-none" aria-label="Próximo popup"></button>
+
+        <!-- Setas de navegação -->
+        <div class="absolute w-full flex justify-between px-12 pointer-events-none">
+          <button id="arrow-prev" class="nav-arrow text-white p-2 pointer-events-auto" aria-label="Anterior">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <button id="arrow-next" class="nav-arrow text-white p-2 pointer-events-auto" aria-label="Próximo">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Carrossel de miniaturas -->
+      <div class="absolute left-0 right-0 bottom-[-5rem] flex justify-center items-center gap-8">
+        <button class="thumbnail flex flex-col items-center" data-icon="FlexPuff">
+          <div class="flex items-center justify-center w-10 h-10 rounded-full bg-[#1A6A72]/50 backdrop-blur-md p-1">
+            <img src="/IQOSILUMAV2/Icons/FlexPuff.svg" alt="Flex Puff" class="w-6 h-6 brightness-0 invert">
+          </div>
+          <span class="text-xs text-white mt-1 font-normal opacity-70">Flex Puff</span>
+        </button>
+        <button class="thumbnail flex flex-col items-center" data-icon="FlexBattery">
+          <div class="flex items-center justify-center w-10 h-10 rounded-full bg-[#1A6A72]/50 backdrop-blur-md p-1">
+            <img src="/IQOSILUMAV2/Icons/FlexBattery.svg" alt="Flex Battery" class="w-6 h-6 brightness-0 invert">
+          </div>
+          <span class="text-xs text-white mt-1 font-normal opacity-70">Flex Battery</span>
+        </button>
+        <button class="thumbnail flex flex-col items-center" data-icon="ModoPausa">
+          <div class="flex items-center justify-center w-10 h-10 rounded-full bg-[#1A6A72]/50 backdrop-blur-md p-1">
+            <img src="/IQOSILUMAV2/Icons/Modo Pausa.svg" alt="Modo Pausa" class="w-6 h-6 brightness-0 invert">
+          </div>
+          <span class="text-xs text-white mt-1 font-normal opacity-70">Modo Pausa</span>
+        </button>
+        <button class="thumbnail flex flex-col items-center" data-icon="EcraTatil">
+          <div class="flex items-center justify-center w-10 h-10 rounded-full bg-[#1A6A72]/50 backdrop-blur-md p-1">
+            <img src="/IQOSILUMAV2/Icons/EcraTatil.svg" alt="Ecrã Tátil" class="w-6 h-6 brightness-0 invert">
+          </div>
+          <span class="text-xs text-white mt-1 font-normal opacity-70">Ecrã Tátil</span>
+        </button>
+      </div>
+    </div>
     
     <div class="title-container">
       <h1 style="color: white; padding-left: 2%;">IQOS ILUMA i</h1>
@@ -990,5 +1285,153 @@
     </script>
 
     <script src="js/ilumaprime-one.js"></script>
+
+    <script>
+      // Script para o carrossel de popups
+      document.addEventListener('DOMContentLoaded', function() {
+        // Configurações do carrossel
+        const cardWidth = 400;
+        const swipeThreshold = 100;
+        const cards = document.querySelectorAll('.popup-card');
+        const thumbnails = document.querySelectorAll('.thumbnail');
+        const container = document.querySelector('#popup-container');
+        const overlay = document.querySelector('#popup-overlay');
+        let activeIndex = 0;
+        let isDragging = false;
+        let currentOffset = 0;
+
+        // Inicializar posições dos cards
+        function updateCards() {
+          cards.forEach((card, index) => {
+            let positionOffset = index - activeIndex;
+            const totalCards = cards.length;
+            if (positionOffset > totalCards / 2) {
+              positionOffset -= totalCards;
+            } else if (positionOffset < -totalCards / 2) {
+              positionOffset += totalCards;
+            }
+
+            const xPosition = positionOffset * cardWidth + currentOffset;
+            const isActive = index === activeIndex;
+            const distance = Math.abs(xPosition);
+
+            gsap.to(card, {
+              x: xPosition,
+              scale: isActive ? 1 : Math.max(0.8, 1 - (distance / cardWidth * 0.15)),
+              opacity: isActive ? 1 : Math.max(0.7, 1 - (distance / cardWidth * 0.2)),
+              filter: `blur(${Math.min(3, distance / cardWidth * 1.5)}px)`,
+              zIndex: isActive ? 100 : 100 - Math.abs(positionOffset) * 10,
+              duration: 0.6,
+              ease: 'power2.out',
+              overwrite: true
+            });
+
+            card.classList.toggle('active', isActive);
+          });
+
+          thumbnails.forEach((thumbnail, index) => {
+            thumbnail.classList.toggle('active', index === activeIndex);
+          });
+        }
+
+        // Navegar para o próximo card
+        function navigateNext() {
+          if (isDragging) return;
+          activeIndex = (activeIndex + 1) % cards.length;
+          currentOffset = 0;
+          updateCards();
+        }
+
+        // Navegar para o card anterior
+        function navigatePrev() {
+          if (isDragging) return;
+          activeIndex = (activeIndex - 1 + cards.length) % cards.length;
+          currentOffset = 0;
+          updateCards();
+        }
+
+        // Configurar arrasto com GSAP Draggable
+        cards.forEach((card, index) => {
+          Draggable.create(card, {
+            type: 'x',
+            bounds: { minX: -cardWidth, maxX: cardWidth },
+            inertia: true,
+            onDragStart: function() {
+              if (index === activeIndex) {
+                isDragging = true;
+              }
+            },
+            onDrag: function() {
+              if (index === activeIndex) {
+                currentOffset = this.x;
+                updateCards();
+              }
+            },
+            onDragEnd: function() {
+              if (index !== activeIndex) return;
+              isDragging = false;
+              const offset = this.x;
+              const velocity = this.getVelocity();
+
+              const shouldSwipe = Math.abs(velocity) > 500 || Math.abs(offset) > swipeThreshold;
+              if (shouldSwipe) {
+                if (offset > 0) {
+                  navigatePrev();
+                } else {
+                  navigateNext();
+                }
+              } else {
+                currentOffset = 0;
+                updateCards();
+              }
+            }
+          });
+        });
+
+        // Abrir popup ao clicar nos ícones de features
+        document.querySelectorAll('.feature-item').forEach(item => {
+          item.addEventListener('click', (e) => {
+            const icon = e.currentTarget.getAttribute('data-icon');
+            activeIndex = Array.from(cards).findIndex(card => card.getAttribute('data-icon') === icon);
+            container.classList.remove('hidden');
+            overlay.classList.add('active');
+            updateCards();
+          });
+        });
+
+        // Fechar popup
+        overlay.addEventListener('click', () => {
+          container.classList.add('hidden');
+          overlay.classList.remove('active');
+        });
+
+        document.querySelectorAll('.close-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            container.classList.add('hidden');
+            overlay.classList.remove('active');
+          });
+        });
+
+        // Navegação por setas
+        document.getElementById('nav-prev').addEventListener('click', navigatePrev);
+        document.getElementById('nav-next').addEventListener('click', navigateNext);
+        document.getElementById('arrow-prev').addEventListener('click', navigatePrev);
+        document.getElementById('arrow-next').addEventListener('click', navigateNext);
+
+        // Navegação por miniaturas
+        thumbnails.forEach((thumbnail, index) => {
+          thumbnail.addEventListener('click', (e) => {
+            e.stopPropagation();
+            activeIndex = index;
+            currentOffset = 0;
+            updateCards();
+          });
+        });
+
+        // Inicializar carrossel
+        updateCards();
+      });
+    </script>
   </body>
 </html> 
