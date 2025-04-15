@@ -1471,35 +1471,6 @@
           });
         });
         
-        // Adicionar suporte para navegação por gesto de deslizar
-        let touchStartX = 0;
-        let touchEndX = 0;
-        
-        featurePopups.forEach(popup => {
-          popup.addEventListener('touchstart', function(e) {
-            touchStartX = e.changedTouches[0].screenX;
-          }, false);
-          
-          popup.addEventListener('touchend', function(e) {
-            touchEndX = e.changedTouches[0].screenX;
-            handleSwipe(popup);
-          }, false);
-        });
-        
-        function handleSwipe(popup) {
-          const currentIndex = parseInt(popup.getAttribute('data-index'));
-          if (touchEndX < touchStartX - 50) {
-            // Deslizar para a esquerda - próximo popup
-            const nextIndex = (currentIndex + 1) % totalPopups;
-            openPopupByIndex(nextIndex);
-          }
-          if (touchEndX > touchStartX + 50) {
-            // Deslizar para a direita - popup anterior
-            const prevIndex = (currentIndex - 1 + totalPopups) % totalPopups;
-            openPopupByIndex(prevIndex);
-          }
-        }
-        
         // Adicionar suporte para navegação por teclado
         document.addEventListener('keydown', function(e) {
           if (document.body.classList.contains('popup-active')) {
