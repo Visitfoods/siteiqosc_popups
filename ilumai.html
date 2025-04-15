@@ -549,6 +549,28 @@
         font-family: 'IQOSSans-Regular', sans-serif;
         height: 150px;
         overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(92, 217, 232, 0.6) rgba(26, 106, 114, 0.2);
+      }
+
+      /* Estilização da barra de rolagem para WebKit (Chrome, Safari, etc.) */
+      .popup-content::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      .popup-content::-webkit-scrollbar-track {
+        background: rgba(26, 106, 114, 0.2);
+        border-radius: 10px;
+      }
+
+      .popup-content::-webkit-scrollbar-thumb {
+        background: rgba(92, 217, 232, 0.6);
+        border-radius: 10px;
+        border: 2px solid rgba(26, 106, 114, 0.2);
+      }
+
+      .popup-content::-webkit-scrollbar-thumb:hover {
+        background: rgba(92, 217, 232, 0.8);
       }
 
       .popup-content p {
