@@ -82,13 +82,18 @@
         gap: 0px;
         padding: 5px;
         border-radius: 12px;
-        transition: transform 0.3s ease;
+        transition: transform 0.3s ease, opacity 0.3s ease;
         width: 60px;
         cursor: pointer;
       }
 
       .feature-item:hover {
         transform: translateX(-5px);
+        opacity: 1;
+      }
+      
+      .feature-item:active {
+        transform: scale(0.95);
       }
 
       .feature-icon {
@@ -99,12 +104,17 @@
         justify-content: center;
         border-radius: 50%;
         flex-shrink: 0;
+        transition: all 0.3s ease;
       }
-
+      
       .feature-icon img {
         width: 30px;
         height: 30px;
         object-fit: contain;
+      }
+      
+      .feature-item:hover .feature-icon {
+        transform: scale(1.1);
       }
 
       .feature-text {
@@ -417,7 +427,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        z-index: 120;
+        z-index: 100000;
       }
 
       /* Estilizar os cards */
@@ -451,7 +461,7 @@
         inset: 0;
         background: rgba(0, 0, 0, 0.3);
         backdrop-filter: blur(4px);
-        z-index: 100;
+        z-index: 99999;
         opacity: 0;
         pointer-events: none;
         transition: opacity 0.3s ease-out;
@@ -1391,10 +1401,13 @@
         // Abrir popup ao clicar nos ícones de features
         document.querySelectorAll('.feature-item').forEach(item => {
           item.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             const icon = e.currentTarget.getAttribute('data-icon');
             activeIndex = Array.from(cards).findIndex(card => card.getAttribute('data-icon') === icon);
             container.classList.remove('hidden');
             overlay.classList.add('active');
+            currentOffset = 0;
             updateCards();
           });
         });
@@ -1414,10 +1427,25 @@
         });
 
         // Navegação por setas
-        document.getElementById('nav-prev').addEventListener('click', navigatePrev);
-        document.getElementById('nav-next').addEventListener('click', navigateNext);
-        document.getElementById('arrow-prev').addEventListener('click', navigatePrev);
-        document.getElementById('arrow-next').addEventListener('click', navigateNext);
+        document.getElementById('nav-prev').addEventListener('click', (e) => {
+          e.stopPropagation();
+          navigatePrev();
+        });
+        
+        document.getElementById('nav-next').addEventListener('click', (e) => {
+          e.stopPropagation();
+          navigateNext();
+        });
+        
+        document.getElementById('arrow-prev').addEventListener('click', (e) => {
+          e.stopPropagation();
+          navigatePrev();
+        });
+        
+        document.getElementById('arrow-next').addEventListener('click', (e) => {
+          e.stopPropagation();
+          navigateNext();
+        });
 
         // Navegação por miniaturas
         thumbnails.forEach((thumbnail, index) => {
@@ -1429,8 +1457,9 @@
           });
         });
 
-        // Inicializar carrossel
-        updateCards();
+        // Inicializar estado - escondido por padrão
+        container.classList.add('hidden');
+        overlay.classList.remove('active');
       });
     </script>
   </body>
