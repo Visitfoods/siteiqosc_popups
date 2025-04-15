@@ -549,6 +549,7 @@
         font-family: 'IQOSSans-Regular', sans-serif;
         height: 150px;
         overflow-y: auto;
+        position: relative;
       }
 
       .popup-content p {
@@ -594,6 +595,46 @@
 
       .close-popup-btn:hover {
         background-color: rgba(26, 106, 114, 0.8);
+      }
+
+      /* Seta indicadora de scroll */
+      .scroll-indicator {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 30px;
+        height: 30px;
+        background-color: rgba(26, 106, 114, 0.8);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: bounce 1.5s infinite;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+      }
+
+      .scroll-indicator::after {
+        content: "";
+        width: 12px;
+        height: 12px;
+        border-right: 3px solid white;
+        border-bottom: 3px solid white;
+        transform: rotate(45deg) translateY(-2px);
+      }
+
+      @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+          transform: translateX(-50%) translateY(0);
+        }
+        40% {
+          transform: translateX(-50%) translateY(-5px);
+        }
+        60% {
+          transform: translateX(-50%) translateY(-3px);
+        }
       }
     </style>
   </head>
@@ -665,6 +706,7 @@
           <p class="mt-2"><span class="font-bold">Modo Eco</span><br>Permite prolongar o tempo de vida útil da bateria do equipamento até um ano**;</p>
           <p class="mt-2">ou</p>
           <p class="mt-2"><span class="font-bold">Modo Desempenho</span><br>Até 3 utilizações consecutivas**</p>
+          <div class="scroll-indicator"></div>
         </div>
         <div class="popup-slider-controls">
           <div class="popup-slider-dots">
@@ -697,6 +739,7 @@
         <button class="close-popup-btn" aria-label="Fechar">×</button>
         <div class="popup-content">
           <p>A funcionalidade Flexpuff adapta-se de forma inteligente ao ritmo de utilização, podendo permitir até 4 aspirações extra, para uma experiência de utilização máxima de até 6 minutos*.</p>
+          <div class="scroll-indicator"></div>
         </div>
         <div class="popup-slider-controls">
           <div class="popup-slider-dots">
@@ -730,6 +773,7 @@
         <div class="popup-content">
           <p>Já é possível interromper e recomeçar a utilização até 8 minutos, sem que o SMARTCORE STICK™ fique inutilizado, com o novo Modo Pausa.</p>
           <p class="mt-2 text-white/70 italic">Apenas disponível no Modo Desempenho</p>
+          <div class="scroll-indicator"></div>
         </div>
         <div class="popup-slider-controls">
           <div class="popup-slider-dots">
@@ -762,6 +806,7 @@
         <button class="close-popup-btn" aria-label="Fechar">×</button>
         <div class="popup-content">
           <p>O novo Ecrã Tátil permite acompanhar todas as informações relativas ao estado do dispositivo e personalizar a sua utilização.</p>
+          <div class="scroll-indicator"></div>
         </div>
         <div class="popup-slider-controls">
           <div class="popup-slider-dots">
@@ -1340,6 +1385,29 @@
         const sliderDots = document.querySelectorAll('.popup-slider-dot');
         const totalPopups = featurePopups.length;
         
+        // Verificar necessidade de scroll e mostrar indicador
+        function checkScrollIndicator(popup) {
+          const content = popup.querySelector('.popup-content');
+          const scrollIndicator = content.querySelector('.scroll-indicator');
+          
+          if (content.scrollHeight > content.clientHeight) {
+            // O conteúdo excede a altura visível, mostrar indicador
+            scrollIndicator.style.opacity = '1';
+          } else {
+            // O conteúdo cabe completamente, esconder indicador
+            scrollIndicator.style.opacity = '0';
+          }
+          
+          // Esconder indicador quando scroll chegar ao final
+          content.addEventListener('scroll', function() {
+            if (content.scrollHeight - content.scrollTop - content.clientHeight < 10) {
+              scrollIndicator.style.opacity = '0';
+            } else if (content.scrollHeight > content.clientHeight) {
+              scrollIndicator.style.opacity = '1';
+            }
+          });
+        }
+        
         // Função para abrir um popup específico pelo índice
         function openPopupByIndex(index) {
           // Fechar todos os popups
@@ -1351,6 +1419,9 @@
           const popup = document.querySelector(`.feature-popup[data-index="${index}"]`);
           if (popup) {
             popup.classList.add('active');
+            
+            // Verificar necessidade de scroll
+            checkScrollIndicator(popup);
             
             // Adicionar classe ao body para aplicar efeito de desfoque
             document.body.classList.add('popup-active');
