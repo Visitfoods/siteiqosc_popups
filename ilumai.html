@@ -241,8 +241,9 @@
 
       .back-button {
         position: fixed;
-        top: 20px;
-        left: 20px;
+        top: unset;
+        left: 50%;
+        transform: translateX(-50%);
         width: 40px;
         height: 40px;
         background: rgba(0, 0, 0, 0.7);
@@ -257,6 +258,7 @@
         z-index: 1001;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         text-decoration: none;
+        margin-top: 10px;
       }
 
       .back-button:hover {
@@ -641,11 +643,11 @@
     <!---<div class="loading">
       <div>Carregando, por favor aguarde...</div>
     </div>--->
-    <a href="index.html" class="back-button">←</a>
     <div class="frame">
       <img src="iconheader.svg" alt="Frame">
     </div>
-    <img style="margin-top: 14%; width: 126px; padding-bottom: 5%;" id="logo" src="logo iluma.svg" alt="Logo Iluma">
+    <img style="margin-top: 14%; width: 100px; padding-bottom: 0%;" id="logo" src="logo iluma.svg" alt="Logo Iluma">
+    <a href="index.html" class="back-button">←</a>
 
     <div class="orientation-message">
       <img src="icons/rotate-device.svg" alt="Rotate device">
