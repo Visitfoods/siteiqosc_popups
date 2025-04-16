@@ -65,7 +65,7 @@ h1{
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
-  width: 120px;
+  width: 100px;
   height: auto;
   z-index: 1000;
   pointer-events: none;
